@@ -1,0 +1,12 @@
+/.vs/CMSC495Team3ServerApp/v15/*.suo
+/.vs/CMSC495Team3ServerApp/v15/Server/sqlite3/*.lock
+/.vs/CMSC495Team3ServerApp/v15/Server/sqlite3/*.ide
+/.vs/CMSC495Team3ServerApp/v15/Server/sqlite3/*.ide-shm
+/.vs/CMSC495Team3ServerApp/v15/Server/sqlite3/*.ide-wal
+/packages
+/CMSC495Team3ServerApp/obj/Debug/TemporaryGeneratedFile_036C0B5B-1481-4323-8D20-8F5ADCB23D92.cs
+/CMSC495Team3ServerApp/obj/Debug/TemporaryGeneratedFile_5937a670-0e60-4077-877b-f7221da3dda1.cs
+/CMSC495Team3ServerApp/obj/Debug/TemporaryGeneratedFile_E7A71F73-0F8D-4B9B-B56E-8E70B10BC5D3.cs
+/CMSC495Team3ServerApp/obj/Debug/CMSC495Team3ServerApp.csproj.CoreCompileInputs.cache
+/CMSC495Team3ServerApp/obj/Debug/CMSC495Team3ServerApp.csprojAssemblyReference.cache
+/CMSC495Team3ServerApp/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
