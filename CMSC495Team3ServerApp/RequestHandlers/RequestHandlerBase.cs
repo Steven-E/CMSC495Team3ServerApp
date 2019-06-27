@@ -56,25 +56,25 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             return requestText;
         }
 
-        protected bool IsAuthorized(HttpListenerContext httpListenerContext, out string bearerToken)
-        {
-            bearerToken = null;
+        //protected bool IsAuthorized(HttpListenerContext httpListenerContext, out string bearerToken)
+        //{
+        //    bearerToken = null;
 
-            var authenticationHeader = httpListenerContext.Request.Headers["Authorization"];
+        //    var authenticationHeader = httpListenerContext.Request.Headers["Authorization"];
 
-            if (authenticationHeader == null)
-            {
-                return false;
-            }
+        //    if (authenticationHeader == null)
+        //    {
+        //        return false;
+        //    }
 
-            if (!authenticationHeader.StartsWith("Bearer"))
-            {
-                return false;
-            }
+        //    if (!authenticationHeader.StartsWith("Bearer"))
+        //    {
+        //        return false;
+        //    }
 
-            bearerToken = authenticationHeader.Substring("Bearer ".Length).Trim();
+        //    bearerToken = authenticationHeader.Substring("Bearer ".Length).Trim();
 
-            return SessionManager.IsValidSession(bearerToken);
-        }
+        //    return SessionManager.IsValidSession(bearerToken);
+        //}
     }
 }
