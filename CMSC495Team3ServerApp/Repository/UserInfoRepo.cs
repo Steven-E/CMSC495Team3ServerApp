@@ -68,7 +68,7 @@ namespace CMSC495Team3ServerApp.Repository
 
         public override TransactionResult<UserInfo> Update(UserInfo appObj)
         {
-            const string sql = "UPDATE UserInfo SET" +
+            const string sql = "UPDATE UserInfo SET " +
                                "UserName = '@UserName' " +
                                "UserEmail = '@UserEmail' " +
                                "FirstName = '@FirstName' " +

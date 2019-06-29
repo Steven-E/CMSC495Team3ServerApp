@@ -6,6 +6,6 @@
 
         public string BaseUrl { get; set; }
 
-        public string AccountUrl { get; set; }
+        public string ApiUrl { get; set; }
     }
 }

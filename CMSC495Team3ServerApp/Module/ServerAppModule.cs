@@ -19,9 +19,15 @@ namespace CMSC495Team3ServerApp.Module
 
             Bind<IRequestHandlerFactory>().To<RequestHandlerFactory>().InSingletonScope();
 
+            // Repo bindings
+            Bind<IBeerRepo>().To<BeerRepo>();
+            Bind<IBreweryRepo>().To<BreweryRepo>();
             Bind<IUserInfoRepo>().To<UserInfoRepo>();
             Bind<IUserBeerRankingRepo>().To<UserBeerRankingRepo>();
+            Bind<ISocialMediaRepo>().To<SocialMediaRepo>();
             Bind<ISocialMediaAccountRepo>().To<SocialMediaAccountRepo>();
+            
+
 
             Kernel.Bind(
                 x =>

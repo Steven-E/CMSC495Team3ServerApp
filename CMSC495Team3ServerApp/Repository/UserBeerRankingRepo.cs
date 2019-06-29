@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using CMSC495Team3ServerApp.Logging;
 using CMSC495Team3ServerApp.Models.App;
 using CMSC495Team3ServerApp.Provider;
@@ -21,10 +20,21 @@ namespace CMSC495Team3ServerApp.Repository
         {
             //TODO: Need to toy around with double quotes or single quotes in the sql query.
             const string sql =
-                "INSERT INTO UserBeerRanking (User_FK, Beer_FK, Score, UserRankPosition, " +
-                " HaveTried, UserReview) VALUES " +
-                "(@User_FK, @Beer_FK, @Score, @UserRankPosition, @HaveTried, @UserReview);"; //+
-                //"SELECT LAST_INSERT_ID();";
+                "INSERT INTO UserBeerRanking " +
+                "(User_FK, " +
+                "Beer_FK, " +
+                "Score, " +
+                "UserRankPosition, " +
+                " HaveTried, " +
+                "UserReview) " +
+                "VALUES " +
+                "(@User_FK, " +
+                "@Beer_FK, " +
+                "@Score, " +
+                "@UserRankPosition, " +
+                "@HaveTried, " +
+                "@UserReview);"; //+
+            //"SELECT LAST_INSERT_ID();";
             try
             {
                 using (var connection = new SqlConnection(Config.DatabaseConnectionString))
@@ -34,10 +44,10 @@ namespace CMSC495Team3ServerApp.Repository
                     {
                         User_FK = userId,
                         Beer_FK = appObj.Beer.BeerId,
-                        Score = appObj.Score,
-                        UserRankPosition = appObj.UserRankPosition,
-                        HaveTried = appObj.HaveTried,
-                        UserReview = appObj.UserReview
+                        appObj.Score,
+                        appObj.UserRankPosition,
+                        appObj.HaveTried,
+                        appObj.UserReview
                     });
                 }
             }
@@ -45,11 +55,6 @@ namespace CMSC495Team3ServerApp.Repository
             {
                 Log.Error($"Could not insert '{JsonConvert.SerializeObject(appObj)}.'", e);
             }
-        }
-
-        public override TransactionResult<UserBeerRanking> Update(UserBeerRanking appObj)
-        {
-            throw new NotImplementedException();
         }
 
         public override TransactionResult<UserBeerRanking> Update(UserBeerRanking appObj, int userId)
@@ -63,7 +68,7 @@ namespace CMSC495Team3ServerApp.Repository
                 "WHERE User_FK = @UserId " +
                 "AND Beer_FK = @BeerId";
 
-            TransactionResult <UserBeerRanking>  retVal = new TransactionResult<UserBeerRanking>();
+            var retVal = new TransactionResult<UserBeerRanking>();
 
             try
             {
@@ -73,11 +78,11 @@ namespace CMSC495Team3ServerApp.Repository
                     connection.Execute(sql, new
                     {
                         UserId = userId,
-                        BeerId = appObj.Beer.BeerId,
-                        Score = appObj.Score,
-                        UserRankPosition = appObj.UserRankPosition,
-                        HaveTried = appObj.HaveTried,
-                        UserReview = appObj.UserReview
+                        appObj.Beer.BeerId,
+                        appObj.Score,
+                        appObj.UserRankPosition,
+                        appObj.HaveTried,
+                        appObj.UserReview
                     });
                 }
 
@@ -129,7 +134,6 @@ namespace CMSC495Team3ServerApp.Repository
 
         public TransactionResult<ICollection<UserBeerRanking>> Find(int userId)
         {
-            
             const string sql = "SELECT * FROM UserBeerRankings" +
                                "WHERE User_FK = @UserId";
 
@@ -162,13 +166,13 @@ namespace CMSC495Team3ServerApp.Repository
         public TransactionResult<ICollection<UserBeerRanking>> Find(int beerId, bool isUntappdId)
         {
             //TODO: figure this part out... 
-            string sql = "SELECT * FROM UserBeerRankings u" +
-                         (isUntappdId
-                             ? "INNER JOIN Beer b ON u.Beer_FK = b.UntappId " +
-                               "WHERE b.UntappdId = @beerId"
-                             : "WHERE BeerId = @beerId"
-                         );
-                               //$"WHERE { (!isUntappdId ? "Beer_FK = @BeerId" : "" )}";
+            var sql = "SELECT * FROM UserBeerRankings u" +
+                      (isUntappdId
+                          ? "INNER JOIN Beer b ON u.Beer_FK = b.UntappId " +
+                            "WHERE b.UntappdId = @beerId"
+                          : "WHERE BeerId = @beerId"
+                      );
+            //$"WHERE { (!isUntappdId ? "Beer_FK = @BeerId" : "" )}";
 
             var retVal = new TransactionResult<ICollection<UserBeerRanking>>();
 
@@ -197,6 +201,10 @@ namespace CMSC495Team3ServerApp.Repository
             return retVal;
         }
 
+        public override TransactionResult<UserBeerRanking> Update(UserBeerRanking appObj)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public interface IUserBeerRankingRepo
@@ -210,6 +218,5 @@ namespace CMSC495Team3ServerApp.Repository
         TransactionResult<ICollection<UserBeerRanking>> Find(int userId);
 
         TransactionResult<ICollection<UserBeerRanking>> Find(int beerId, bool isUntappdId);
-
     }
 }

@@ -2,13 +2,13 @@
 {
     public class Beer
     {
-        public int BreweryId { get; set; }
+        public Brewery Brewery { get; set; }
 
         public int BeerId { get; set; }
 
         public int UntappdId { get; set; }
 
-        public int BrewerDbId { get; set; }
+        public int BreweryDbId { get; set; }
 
         public string BeerName { get; set; }
 

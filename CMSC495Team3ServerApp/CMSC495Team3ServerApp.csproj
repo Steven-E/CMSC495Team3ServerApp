@@ -91,14 +91,22 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Provider\ConfigProvider.cs" />
     <Compile Include="Provider\IConfigProvider.cs" />
+    <Compile Include="Repository\BeerRepo.cs" />
+    <Compile Include="Repository\BreweryRepo.cs" />
     <Compile Include="Repository\RepoBase.cs" />
     <Compile Include="Repository\SocialMediaAccountRepo.cs" />
+    <Compile Include="Repository\SocialMediaRepo.cs" />
     <Compile Include="Repository\UserBeerRankingRepo.cs" />
     <Compile Include="Repository\UserInfoRepo.cs" />
+    <Compile Include="RequestHandlers\BeerHandler.cs" />
+    <Compile Include="RequestHandlers\BreweryHandler.cs" />
     <Compile Include="RequestHandlers\IRequestHandler.cs" />
     <Compile Include="RequestHandlers\IRequestHandlerFactory.cs" />
     <Compile Include="RequestHandlers\RequestHandlerBase.cs" />
     <Compile Include="RequestHandlers\RequestHandlerFactory.cs" />
+    <Compile Include="RequestHandlers\ReviewHandler.cs" />
+    <Compile Include="RequestHandlers\SearchHandler.cs" />
+    <Compile Include="RequestHandlers\UserHandler.cs" />
     <Compile Include="ServerAppWorker.cs" />
     <Compile Include="UtilityClasses\QueueProcessor.cs" />
   </ItemGroup>
