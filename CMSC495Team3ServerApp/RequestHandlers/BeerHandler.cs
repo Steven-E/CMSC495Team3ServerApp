@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using CMSC495Team3ServerApp.Logging;
+using CMSC495Team3ServerApp.Models;
 using CMSC495Team3ServerApp.Models.App;
 using CMSC495Team3ServerApp.Provider;
 using CMSC495Team3ServerApp.Repository;
@@ -10,7 +11,7 @@ using Newtonsoft.Json;
 
 namespace CMSC495Team3ServerApp.RequestHandlers
 {
-    public class BeerHandler : RequestHandlerBase
+    public class BeerHandler : SupportedRequestHandlerBase
     {
         private readonly IBeerRepo beerRepo;
 
@@ -24,10 +25,15 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             SupportedActions.Add(HttpMethod.Get, GetAction);
             SupportedActions.Add(HttpMethod.Post, PostAction);
 
-            //SupportedRoutes.Add("untappdId", );
+            EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "untappdId/{ID}", "URL", "JSON payload", typeof(Beer)));
+            EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "beerId/{ID}", "URL", "JSON payload", typeof(Beer)));
+            EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "breweryId/{ID}", "URL", "JSON payload", typeof(ICollection<Beer>)));
+
+            EndpointDocumentation.Add(new RestDoc("POST", UrlSegment + "add/", "JSON payload", "BeerId - int", typeof(Beer)));
+            EndpointDocumentation.Add(new RestDoc("POST", UrlSegment + "update/", "JSON payload", "Updated Beer - JSON payload", typeof(Beer)));
         }
 
-        protected override Dictionary<HttpMethod, Action<HttpListenerContext, string[]>> SupportedActions { get; }
+        protected sealed override Dictionary<HttpMethod, Action<HttpListenerContext, string[]>> SupportedActions { get; }
 
         public override string UrlSegment => "/beer/";
 
@@ -49,39 +55,15 @@ namespace CMSC495Team3ServerApp.RequestHandlers
                 return;
             }
 
-            switch (route[0])
-            {
-                case "add":
-                    SendResponse(httpListenerContext, beerRepo.Insert(beer));
-                    break;
-                case "update":
-                    SendResponse(httpListenerContext, beerRepo.Update(beer));
-                    break;
-                default:
-                    ErrorResponse
-                        .Get(HttpStatusCode.BadRequest)
-                        .Handle(httpListenerContext, $"Bad Request - No '/beer/{route[0]}/...' exists");
-                    break;
-            }
-        }
-
-        // Finds by App.BeerId, UntappdId, App.BreweryId
-        private void GetAction(HttpListenerContext httpListenerContext, string[] route)
-        {
             try
             {
-                var id = int.Parse(route[1]);
-
                 switch (route[0])
                 {
-                    case "untappdId":
-                        SendResponse(httpListenerContext, beerRepo.FindUntappdId(id));
+                    case "add":
+                        SendResponse(httpListenerContext, beerRepo.Insert(beer));
                         break;
-                    case "beerId":
-                        SendResponse(httpListenerContext, beerRepo.FindById(id));
-                        break;
-                    case "breweryId":
-                        SendResponse(httpListenerContext, beerRepo.FindByBreweryId(id));
+                    case "update":
+                        SendResponse(httpListenerContext, beerRepo.Update(beer));
                         break;
                     default:
                         ErrorResponse
@@ -94,60 +76,48 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             {
                 ErrorResponse.Get(HttpStatusCode.InternalServerError).Handle(httpListenerContext, e.Message);
             }
+
         }
 
-        protected override void ProcessRequest(HttpListenerContext httpListenerContext, HttpMethod method)
+        // Finds by App.BeerId, UntappdId, App.BreweryId
+        private void GetAction(HttpListenerContext httpListenerContext, string[] route)
         {
-            //var route = httpListenerContext.Request.Url.AbsolutePath.Remove(0, UrlSegment.Length);
+            try
+            {
 
-            var route = httpListenerContext.Request.Url.AbsolutePath.Remove(0, UrlSegment.Length)
-                .Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
 
-            SupportedActions[method](httpListenerContext, route);
+                switch (route[0])
+                {
+                    case "untappdId":
+                        var uId = int.Parse(route[1]);
+                        SendResponse(httpListenerContext, beerRepo.FindUntappdId(uId));
+                        break;
+                    case "beerId":
+                        var id = int.Parse(route[1]);
+                        SendResponse(httpListenerContext, beerRepo.FindById(id));
+                        break;
+                    case "breweryId":
+                        var bId = int.Parse(route[1]);
+                        SendResponse(httpListenerContext, beerRepo.FindByBreweryId(bId));
+                        break;
+                    case "help":
+                        SendOKResponseAndPayload(httpListenerContext, JsonConvert.SerializeObject(EndpointDocumentation, Formatting.Indented));
+                        break;
+                    default:
+                        ErrorResponse
+                            .Get(HttpStatusCode.BadRequest)
+                            .Handle(httpListenerContext, $"Bad Request - No '/beer/{route[0]}/...' exists");
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                if (e is ArgumentNullException || e is ArgumentException || e is FormatException ||
+                    e is OverflowException)
+                    ErrorResponse.Get(HttpStatusCode.BadRequest).Handle(httpListenerContext, "Badly formed Id");
+                else
+                    ErrorResponse.Get(HttpStatusCode.InternalServerError).Handle(httpListenerContext, e.Message);
+            }
         }
-    }
-
-    //405 Method Not Allowed
-    public class MethodNotAllowedHandler : ErrorResponseHandlerBase
-    {
-        public MethodNotAllowedHandler(ILogger log, IConfigProvider config) : base(log, config)
-        {
-        }
-
-        protected override string Description => "Method not allowed";
-        public override HttpStatusCode StatusCode => HttpStatusCode.MethodNotAllowed;
-    }
-
-    //500 Internal Server Error
-    public class ServerErrorHandler : ErrorResponseHandlerBase
-    {
-        public ServerErrorHandler(ILogger log, IConfigProvider config) : base(log, config)
-        {
-        }
-
-        protected override string Description => "Internal Server Error";
-        public override HttpStatusCode StatusCode => HttpStatusCode.InternalServerError;
-    }
-
-    //400 Bad Request
-    public class BadRequestHandler : ErrorResponseHandlerBase
-    {
-        public BadRequestHandler(ILogger log, IConfigProvider config) : base(log, config)
-        {
-        }
-
-        protected override string Description => "Bad Request";
-        public override HttpStatusCode StatusCode => HttpStatusCode.BadRequest;
-    }
-
-    //404 Not Found
-    public class NotFoundHandler : ErrorResponseHandlerBase
-    {
-        public NotFoundHandler(ILogger log, IConfigProvider config) : base(log, config)
-        {
-        }
-
-        protected override string Description => "Requested resource does not exist or cannot be found.";
-        public override HttpStatusCode StatusCode => HttpStatusCode.NotFound;
     }
 }

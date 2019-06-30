@@ -5,19 +5,20 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using CMSC495Team3ServerApp.Logging;
+using CMSC495Team3ServerApp.Models;
 using CMSC495Team3ServerApp.Provider;
 using CMSC495Team3ServerApp.Repository;
 using Newtonsoft.Json;
 
 namespace CMSC495Team3ServerApp.RequestHandlers
 {
-    public abstract class RequestHandlerBase : IRequestHandler
+    public abstract class SupportedRequestHandlerBase : ISupportedRequestHandler
     {
         protected readonly IConfigProvider Config;
         protected readonly IErrorResponseFactory ErrorResponse;
         protected readonly ILogger Log;
 
-        protected RequestHandlerBase(ILogger log, IConfigProvider config,
+        protected SupportedRequestHandlerBase(ILogger log, IConfigProvider config,
             IErrorResponseFactory errorResponseFactory) //, ISessionManager sessionManager)
         {
             Config = config;
@@ -29,8 +30,9 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             //SessionManager = sessionManager;
         }
 
-        //protected abstract HashSet<HttpMethod> SupportedActions { get; }
         protected abstract Dictionary<HttpMethod, Action<HttpListenerContext, string[]>> SupportedActions { get; }
+
+        protected List<RestDoc> EndpointDocumentation = new List<RestDoc>();
 
         //protected readonly string ConnectionString;
 
@@ -55,7 +57,14 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             ProcessRequest(httpListenerContext, requestMethodType);
         }
 
-        protected abstract void ProcessRequest(HttpListenerContext httpListenerContext, HttpMethod method);
+        //protected abstract void ProcessRequest(HttpListenerContext httpListenerContext, HttpMethod method);
+        protected virtual void ProcessRequest(HttpListenerContext httpListenerContext, HttpMethod method)
+        {
+            var route = httpListenerContext.Request.Url.AbsolutePath.Remove(0, UrlSegment.Length)
+                .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+
+            SupportedActions[method](httpListenerContext, route);
+        }
 
         protected void SendOKResponseAndPayload(HttpListenerContext httpListenerContext, string responseJson)
         {

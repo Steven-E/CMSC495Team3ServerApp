@@ -17,7 +17,7 @@ namespace CMSC495Team3ServerApp.Module
 
             Bind<IServerAppWorker>().To<ServerAppWorker>().InSingletonScope();
 
-            Bind<IRequestHandlerFactory>().To<RequestHandlerFactory>().InSingletonScope();
+            Bind<ISupportedRequestHandlerFactory>().To<SupportedRequestHandlerFactory>().InSingletonScope();
 
             Bind<IErrorResponseFactory>().To<ErrorResponseFactory>().InSingletonScope();
 
@@ -43,7 +43,7 @@ namespace CMSC495Team3ServerApp.Module
                 {
                     x.FromThisAssembly()
                         .SelectAllClasses()
-                        .InheritedFrom<IRequestHandler>()
+                        .InheritedFrom<ISupportedRequestHandler>()
                         .BindAllInterfaces()
                         .Configure(b => { b.InSingletonScope(); });
                 });

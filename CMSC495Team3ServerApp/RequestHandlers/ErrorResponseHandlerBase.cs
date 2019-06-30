@@ -5,13 +5,6 @@ using CMSC495Team3ServerApp.Provider;
 
 namespace CMSC495Team3ServerApp.RequestHandlers
 {
-    public interface IRequestHandler
-    {
-        string UrlSegment { get; }
-
-        void Handle(HttpListenerContext httpListenerContext);
-    }
-
     public abstract class ErrorResponseHandlerBase : IErrorResponseHandler
     {
         protected readonly IConfigProvider Config;
@@ -53,12 +46,47 @@ namespace CMSC495Team3ServerApp.RequestHandlers
         }
     }
 
-    public interface IErrorResponseHandler
+    //405 Method Not Allowed
+    public class MethodNotAllowedHandler : ErrorResponseHandlerBase
     {
-        HttpStatusCode StatusCode { get; }
+        public MethodNotAllowedHandler(ILogger log, IConfigProvider config) : base(log, config)
+        {
+        }
 
-        void Handle(HttpListenerContext httpListenerContext);
+        protected override string Description => "Method not allowed";
+        public override HttpStatusCode StatusCode => HttpStatusCode.MethodNotAllowed;
+    }
 
-        void Handle(HttpListenerContext httpListenerContext, string details);
+    //500 Internal Server Error
+    public class ServerErrorHandler : ErrorResponseHandlerBase
+    {
+        public ServerErrorHandler(ILogger log, IConfigProvider config) : base(log, config)
+        {
+        }
+
+        protected override string Description => "Internal Server Error";
+        public override HttpStatusCode StatusCode => HttpStatusCode.InternalServerError;
+    }
+
+    //400 Bad Request
+    public class BadRequestHandler : ErrorResponseHandlerBase
+    {
+        public BadRequestHandler(ILogger log, IConfigProvider config) : base(log, config)
+        {
+        }
+
+        protected override string Description => "Bad Request";
+        public override HttpStatusCode StatusCode => HttpStatusCode.BadRequest;
+    }
+
+    //404 Not Found
+    public class NotFoundHandler : ErrorResponseHandlerBase
+    {
+        public NotFoundHandler(ILogger log, IConfigProvider config) : base(log, config)
+        {
+        }
+
+        protected override string Description => "Requested resource does not exist or cannot be found.";
+        public override HttpStatusCode StatusCode => HttpStatusCode.NotFound;
     }
 }

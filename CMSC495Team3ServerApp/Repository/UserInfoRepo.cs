@@ -23,21 +23,23 @@ namespace CMSC495Team3ServerApp.Repository
             this.socialAccRepo = socialAccRepo;
         }
 
-        public void Insert(UserInfo appObj)
+        public TransactionResult<int> Insert(UserInfo appObj)
         {
             const string sql =
                 "INSERT INTO UserInfo (UserName, Password, UserEmail, " +
                 " FirstName, LastName, Location, UntappdId) VALUES " +
-                "(\"@UserName\", \"@Password\", \"@UserEmail\", \"@FirstName\", \"@LastName\", \"@Location\", \"@UntappdId\");" +
+                "(@UserName, @Password, @UserEmail, @FirstName, @LastName, @Location, @UntappdId);" +
                 "SELECT LAST_INSERT_ID();";
+            var retVal = new TransactionResult<int>();
+
             try
             {
-                int userId;
+                //int userId;
 
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    userId = connection.Query<int>(sql, new
+                    retVal.Data = connection.Query<int>(sql, new
                     {
                         appObj.UserName,
                         appObj.Password,
@@ -51,24 +53,35 @@ namespace CMSC495Team3ServerApp.Repository
                     //if appObject has nested values....
                 }
 
-                foreach (var ranking in appObj.BeerRankings) rankRepo.Insert(ranking, userId);
+                //TODO: do better than these loops. Add to sql above using dapper.
+                appObj.BeerRankings.ForEach(r => r.User_FK = retVal.Data);
 
-                foreach (var account in appObj.SocialAccounts) socialAccRepo.Insert(account, userId);
+                foreach (var ranking in appObj.BeerRankings) rankRepo.Insert(ranking);
+
+                foreach (var account in appObj.SocialAccounts) socialAccRepo.Insert(account, retVal.Data);
+
+                retVal.Success = true;
+
             }
             catch (Exception e)
             {
                 Log.Error($"Could not insert '{JsonConvert.SerializeObject(appObj)}.'", e);
+
+                retVal.Success = false;
+                retVal.Details = e.Message;
             }
+
+            return retVal;
         }
 
         public override TransactionResult<UserInfo> Update(UserInfo appObj)
         {
             const string sql = "UPDATE UserInfo SET " +
-                               "UserName = '@UserName' " +
-                               "UserEmail = '@UserEmail' " +
-                               "FirstName = '@FirstName' " +
-                               "LastName = '@LastName' " +
-                               "Location = '@Location' " +
+                               "UserName = @UserName " +
+                               "UserEmail = @UserEmail " +
+                               "FirstName = @FirstName " +
+                               "LastName = @LastName " +
+                               "Location = @Location " +
                                "UntappdId = @UntappdId " +
                                "WHERE UserId = @UserId;";
 
@@ -93,8 +106,10 @@ namespace CMSC495Team3ServerApp.Repository
 
                 var userRankingCollection = new List<TransactionResult<UserBeerRanking>>();
 
+                appObj.BeerRankings.ForEach(r => r.User_FK = appObj.UserId);
+
                 foreach (var ranking in appObj.BeerRankings)
-                    userRankingCollection.Add(rankRepo.Update(ranking, appObj.UserId));
+                    userRankingCollection.Add(rankRepo.Update(ranking));
 
                 var socialAccountsCollection = new List<TransactionResult<SocialMediaAccount>>();
 
@@ -118,11 +133,10 @@ namespace CMSC495Team3ServerApp.Repository
             return retVal;
         }
 
-        public TransactionResult<UserInfo> Find(int userId, bool isUntappdId)
+        public TransactionResult<UserInfo> FindById(int id)
         {
-            var sql = "SELECT * FROM UserInfo WHERE " +
-                      $"{(isUntappdId ? "UntappdId = " : "UserId = ")}" +
-                      "@UserId";
+            const string sql = "SELECT * FROM UserInfo WHERE " +
+                       "UserId = @Id";
 
             var retVal = new TransactionResult<UserInfo>();
 
@@ -133,16 +147,201 @@ namespace CMSC495Team3ServerApp.Repository
                     connection.Open();
                     retVal.Data = connection.Query<UserInfo>(sql, new
                     {
-                        UserId = userId
+                        id
                     }).FirstOrDefault();
 
-                    retVal.Success = true;
                 }
+
+                if (retVal.Data != null)
+                {
+                    var accounts = socialAccRepo.FindByUserId(retVal.Data.UserId).Data;
+
+                    retVal.Data.SocialAccounts = accounts?.ToList();
+
+                    var rankings = rankRepo.FindAllByUserId(retVal.Data.UserId).Data;
+
+                    retVal.Data.BeerRankings = rankings?.ToList();
+                }
+
+                retVal.Success = true;
             }
             catch (Exception e)
             {
-                Log.Error($"Could not perform FIND using {(isUntappdId ? "UntappdId" : "UserId")} - " +
-                          $"'{userId}'", e);
+                Log.Error($"Could not perform FIND using UserId - '{id}'", e);
+
+                retVal.Success = false;
+                retVal.Details = e.Message;
+            }
+
+            return retVal;
+        }
+
+        public TransactionResult<UserInfo> FindByUntappdId(int id)
+        {
+            const string sql = "SELECT * FROM UserInfo WHERE " +
+                               "UntappdId = @Id";
+
+            var retVal = new TransactionResult<UserInfo>();
+
+            try
+            {
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
+                {
+                    connection.Open();
+                    retVal.Data = connection.Query<UserInfo>(sql, new
+                    {
+                        id
+                    }).FirstOrDefault();
+                }
+
+                if (retVal.Data != null)
+                {
+                    var accounts = socialAccRepo.FindByUserId(retVal.Data.UserId).Data;
+
+                    retVal.Data.SocialAccounts = accounts?.ToList();
+
+                    var rankings = rankRepo.FindAllByUserId(retVal.Data.UserId).Data;
+
+                    retVal.Data.BeerRankings = rankings?.ToList();
+                }
+
+                retVal.Success = true;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Could not perform FIND using UntappdId - '{id}'", e);
+
+                retVal.Success = false;
+                retVal.Details = e.Message;
+            }
+
+            return retVal;
+        }
+
+        public TransactionResult<ICollection<UserInfo>> FindByFirstName(string firstName)
+        {
+            const string sql = "SELECT * FROM UserInfo WHERE " +
+                               "FirstName = @firstName";
+
+            var retVal = new TransactionResult<ICollection<UserInfo>>();
+
+            try
+            {
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
+                {
+                    connection.Open();
+                    retVal.Data = connection.Query<UserInfo>(sql, new
+                    {
+                        firstName
+                    }).ToList();
+                }
+
+                foreach (var userInfo in retVal.Data)
+                {
+                    if (userInfo == null) continue;
+
+                    var accounts = socialAccRepo.FindByUserId(userInfo.UserId).Data;
+
+                    userInfo.SocialAccounts = accounts?.ToList();
+
+                    var rankings = rankRepo.FindAllByUserId(userInfo.UserId).Data;
+
+                    userInfo.BeerRankings = rankings?.ToList();
+                }
+
+                retVal.Success = true;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Could not perform FIND using FirstName - '{firstName}'", e);
+
+                retVal.Success = false;
+                retVal.Details = e.Message;
+            }
+
+            return retVal;
+        }
+
+        public TransactionResult<ICollection<UserInfo>> FindByLastName(string lastName)
+        {
+            const string sql = "SELECT * FROM UserInfo WHERE " +
+                               "LastName = @lastName";
+
+            var retVal = new TransactionResult<ICollection<UserInfo>>();
+
+            try
+            {
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
+                {
+                    connection.Open();
+                    retVal.Data = connection.Query<UserInfo>(sql, new
+                    {
+                        lastName
+                    }).ToList();
+                }
+
+                foreach (var userInfo in retVal.Data)
+                {
+                    if (userInfo == null) continue;
+
+                    var accounts = socialAccRepo.FindByUserId(userInfo.UserId).Data;
+
+                    userInfo.SocialAccounts = accounts?.ToList();
+
+                    var rankings = rankRepo.FindAllByUserId(userInfo.UserId).Data;
+
+                    userInfo.BeerRankings = rankings?.ToList();
+                }
+
+                retVal.Success = true;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Could not perform FIND using LastName - '{lastName}'", e);
+
+                retVal.Success = false;
+                retVal.Details = e.Message;
+            }
+
+            return retVal;
+        }
+
+        public TransactionResult<ICollection<UserInfo>> FindByLocation(string location)
+        {
+            const string sql = "SELECT * FROM UserInfo WHERE " +
+                               "Location = @location";
+
+            var retVal = new TransactionResult<ICollection<UserInfo>>();
+
+            try
+            {
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
+                {
+                    connection.Open();
+                    retVal.Data = connection.Query<UserInfo>(sql, new
+                    {
+                        location
+                    }).ToList();
+                }
+
+                foreach (var userInfo in retVal.Data)
+                {
+                    if (userInfo == null) continue;
+
+                    var accounts = socialAccRepo.FindByUserId(userInfo.UserId).Data;
+
+                    userInfo.SocialAccounts = accounts?.ToList();
+
+                    var rankings = rankRepo.FindAllByUserId(userInfo.UserId).Data;
+
+                    userInfo.BeerRankings = rankings?.ToList();
+                }
+
+                retVal.Success = true;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Could not perform FIND using Location - '{location}'", e);
 
                 retVal.Success = false;
                 retVal.Details = e.Message;
@@ -153,18 +352,25 @@ namespace CMSC495Team3ServerApp.Repository
 
         public override TransactionResult<UserInfo> Update(UserInfo appObj, int referenceKey)
         {
-            throw new NotImplementedException();
+            return new TransactionResult<UserInfo>()
+                {Success = false, Details = "BAD REQUEST - Operation not implemented"};
         }
     }
 
     public interface IUserInfoRepo
     {
-        void Insert(UserInfo appObj);
+        TransactionResult<int> Insert(UserInfo appObj);
 
         TransactionResult<UserInfo> Update(UserInfo appObj);
 
-        TransactionResult<UserInfo> Find(int userId, bool isUntappdId);
+        TransactionResult<UserInfo> FindById(int id);
 
-        //TransactionResult<UserInfo> Find(int untappdId);
+        TransactionResult<UserInfo> FindByUntappdId(int id);
+
+        TransactionResult<ICollection<UserInfo>> FindByFirstName(string firstName);
+
+        TransactionResult<ICollection<UserInfo>> FindByLastName(string lastName);
+
+        TransactionResult<ICollection<UserInfo>> FindByLocation(string location);
     }
 }

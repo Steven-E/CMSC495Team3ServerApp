@@ -17,20 +17,20 @@ namespace CMSC495Team3ServerApp
 
         private readonly ILogger log;
 
-        private readonly IRequestHandlerFactory requestHandlerFactory;
+        private readonly ISupportedRequestHandlerFactory supportedRequestHandlerFactory;
 
         private readonly QueueProcessor<HttpListenerContext> requestQueue;
 
         private readonly SemaphoreSlim requestSemaphoreSlim;
 
 
-        public ServerAppWorker(ILogger log, IConfigProvider config, IRequestHandlerFactory requestHandlerFactory)
+        public ServerAppWorker(ILogger log, IConfigProvider config, ISupportedRequestHandlerFactory supportedRequestHandlerFactory)
         {
             CancellationTokenSource = new CancellationTokenSource();
 
             this.config = config;
             this.log = log;
-            this.requestHandlerFactory = requestHandlerFactory;
+            this.supportedRequestHandlerFactory = supportedRequestHandlerFactory;
 
 
             httpListener = new HttpListener();
@@ -115,7 +115,7 @@ namespace CMSC495Team3ServerApp
                     absolutePath = context.Request.Url.Segments[0] + context.Request.Url.Segments[1];
 
                 //TODO: this...
-                requestHandlerFactory.Get(absolutePath).Handle(context);
+                supportedRequestHandlerFactory.Get(absolutePath).Handle(context);
             }
             catch (Exception e)
             {

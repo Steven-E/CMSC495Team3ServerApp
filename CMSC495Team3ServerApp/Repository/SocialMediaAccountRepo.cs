@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using CMSC495Team3ServerApp.Logging;
 using CMSC495Team3ServerApp.Models.App;
 using CMSC495Team3ServerApp.Provider;
@@ -10,8 +12,11 @@ namespace CMSC495Team3ServerApp.Repository
 {
     public class SocialMediaAccountRepo : RepoBase<SocialMediaAccount>, ISocialMediaAccountRepo
     {
-        public SocialMediaAccountRepo(ILogger logger, IConfigProvider configProvider) : base(logger, configProvider)
+        private readonly ISocialMediaRepo socialMediaVendorRepo;
+
+        public SocialMediaAccountRepo(ILogger logger, IConfigProvider configProvider, ISocialMediaRepo socialMediaVendorRepo) : base(logger, configProvider)
         {
+            this.socialMediaVendorRepo = socialMediaVendorRepo;
         }
 
         public void Insert(SocialMediaAccount appObj, int userId)
@@ -77,6 +82,50 @@ namespace CMSC495Team3ServerApp.Repository
             return retVal;
         }
 
+        public TransactionResult<ICollection<SocialMediaAccount>> FindByUserId(int userId)
+        {
+            const string sql = "SELECT * FROM SocialMediaAccount WHERE " +
+                               "User_FK = @userId";
+
+            var retVal = new TransactionResult<ICollection<SocialMediaAccount>>();
+
+            try
+            {
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
+                {
+                    connection.Open();
+                    retVal.Data = connection.Query<SocialMediaAccount>(sql, new
+                    {
+                        userId
+                    }).ToList();
+                }
+
+                retVal.Success = true;
+
+                foreach (var account in retVal.Data.Where(a => a != null))
+                {
+                    var vendorRetVal = socialMediaVendorRepo.Find(account.VendorName);
+
+                    account.Vendor = vendorRetVal.Data;
+
+                    if (!vendorRetVal.Success)
+                    {
+                        retVal.Success = false;
+                        retVal.Details = vendorRetVal.Details;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Could not perform FIND in SocialMediaAccount Table using UserId - '{userId}'", e);
+
+                retVal.Success = false;
+                retVal.Details = e.Message;
+            }
+
+            return retVal;
+        }
+
         public override TransactionResult<SocialMediaAccount> Update(SocialMediaAccount appObj)
         {
             throw new NotImplementedException();
@@ -86,6 +135,9 @@ namespace CMSC495Team3ServerApp.Repository
     public interface ISocialMediaAccountRepo
     {
         void Insert(SocialMediaAccount appObj, int userId);
+
         TransactionResult<SocialMediaAccount> Update(SocialMediaAccount appObj, int userId);
+
+        TransactionResult<ICollection<SocialMediaAccount>> FindByUserId(int userId);
     }
 }

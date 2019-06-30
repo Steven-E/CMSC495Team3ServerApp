@@ -5,17 +5,26 @@ using CMSC495Team3ServerApp.Logging;
 
 namespace CMSC495Team3ServerApp.RequestHandlers
 {
-    public class RequestHandlerFactory : IRequestHandlerFactory
+    public interface ISupportedRequestHandlerFactory
+    {
+        IRequestHandler Get(string urlSegment);
+    }
+
+    public class SupportedRequestHandlerFactory : ISupportedRequestHandlerFactory
     {
         private readonly ILogger log;
 
-        private readonly IDictionary<string, IRequestHandler> requestHandlerMap;
+        private readonly IDictionary<string, ISupportedRequestHandler> requestHandlerMap;
+        private readonly IErrorResponseFactory errorResponseFactory;
 
-        public RequestHandlerFactory(ILogger log, IEnumerable<IRequestHandler> handlers)
+        public SupportedRequestHandlerFactory(ILogger log, IEnumerable<ISupportedRequestHandler> handlers, IErrorResponseFactory errorResponseFactory)
         {
             this.log = log;
 
             requestHandlerMap = handlers.ToDictionary(handle => handle.UrlSegment, handle => handle);
+
+            this.errorResponseFactory = errorResponseFactory;
+
         }
 
         public IRequestHandler Get(string urlSegment)
@@ -24,29 +33,7 @@ namespace CMSC495Team3ServerApp.RequestHandlers
 
             log.Error($"No handler exists for {urlSegment}");
 
-            return requestHandlerMap["NOT_FOUND"];
-        }
-    }
-
-    public class ErrorResponseFactory : IErrorResponseFactory
-    {
-        private readonly IDictionary<HttpStatusCode, IErrorResponseHandler> errorHandlersMap;
-        private readonly ILogger log;
-
-        public ErrorResponseFactory(ILogger log, IEnumerable<IErrorResponseHandler> errorHandlers)
-        {
-            this.log = log;
-
-            errorHandlersMap = errorHandlers.ToDictionary(handler => handler.StatusCode, handler => handler);
-        }
-
-        public IErrorResponseHandler Get(HttpStatusCode statusCode)
-        {
-            if (errorHandlersMap.ContainsKey(statusCode)) return errorHandlersMap[statusCode];
-
-            log.Error($"No handler exists for Status Code - '{statusCode}'");
-
-            return errorHandlersMap[HttpStatusCode.InternalServerError];
+            return errorResponseFactory.Get(HttpStatusCode.NotFound);
         }
     }
 }

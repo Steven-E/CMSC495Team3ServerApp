@@ -12,28 +12,22 @@ namespace CMSC495Team3ServerApp.Repository
 {
     public class UserBeerRankingRepo : RepoBase<UserBeerRanking>, IUserBeerRankingRepo
     {
-        public UserBeerRankingRepo(ILogger logger, IConfigProvider configProvider) : base(logger, configProvider)
+        private readonly IBeerRepo beerRepo;
+
+        public UserBeerRankingRepo(ILogger logger, IConfigProvider configProvider, IBeerRepo beerRepo) : base(logger, configProvider)
         {
+            this.beerRepo = beerRepo;
         }
 
-        public void Insert(UserBeerRanking appObj, int userId)
+        //public void Insert(UserBeerRanking appObj, int userId)
+        public TransactionResult<bool> Insert(UserBeerRanking appObj)
         {
             //TODO: Need to toy around with double quotes or single quotes in the sql query.
             const string sql =
                 "INSERT INTO UserBeerRanking " +
-                "(User_FK, " +
-                "Beer_FK, " +
-                "Score, " +
-                "UserRankPosition, " +
-                " HaveTried, " +
-                "UserReview) " +
+                "(User_FK, Beer_FK, Score, UserRankPosition,  HaveTried, UserReview) " +
                 "VALUES " +
-                "(@User_FK, " +
-                "@Beer_FK, " +
-                "@Score, " +
-                "@UserRankPosition, " +
-                "@HaveTried, " +
-                "@UserReview);"; //+
+                "(@User_FK, @Beer_FK, @Score, @UserRankPosition, @HaveTried, @UserReview);"; //+
             //"SELECT LAST_INSERT_ID();";
             try
             {
@@ -42,7 +36,7 @@ namespace CMSC495Team3ServerApp.Repository
                     connection.Open();
                     connection.Execute(sql, new
                     {
-                        User_FK = userId,
+                        User_FK = appObj.User_FK,
                         Beer_FK = appObj.Beer.BeerId,
                         appObj.Score,
                         appObj.UserRankPosition,
@@ -50,14 +44,18 @@ namespace CMSC495Team3ServerApp.Repository
                         appObj.UserReview
                     });
                 }
+
+                return new TransactionResult<bool>(){Data = true, Success = true};
             }
             catch (Exception e)
             {
                 Log.Error($"Could not insert '{JsonConvert.SerializeObject(appObj)}.'", e);
+
+                return new TransactionResult<bool>(){Data = false, Success = false, Details = e.Message};
             }
         }
 
-        public override TransactionResult<UserBeerRanking> Update(UserBeerRanking appObj, int userId)
+        public override TransactionResult<UserBeerRanking> Update(UserBeerRanking appObj)
         {
             const string sql =
                 "UPDATE UserBeerRanking SET " +
@@ -77,7 +75,7 @@ namespace CMSC495Team3ServerApp.Repository
                     connection.Open();
                     connection.Execute(sql, new
                     {
-                        UserId = userId,
+                        UserId = appObj.User_FK,
                         appObj.Beer.BeerId,
                         appObj.Score,
                         appObj.UserRankPosition,
@@ -100,9 +98,14 @@ namespace CMSC495Team3ServerApp.Repository
             return retVal;
         }
 
-        public TransactionResult<UserBeerRanking> Find(int userId, int beerId)
+        public override TransactionResult<UserBeerRanking> Update(UserBeerRanking appObj, int referenceKey)
         {
-            const string sql = "SELECT * FROM UserBeerRankings" +
+            throw new NotImplementedException();
+        }
+
+        public TransactionResult<UserBeerRanking> FindSingleByUserAndBeerId(int userId, int beerId)
+        {
+            const string sql = "SELECT * FROM UserBeerRanking " +
                                "WHERE User_FK = @UserId AND Beer_FK = @BeerId";
 
             var retVal = new TransactionResult<UserBeerRanking>();
@@ -112,7 +115,14 @@ namespace CMSC495Team3ServerApp.Repository
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    retVal.Data = connection.Query<UserBeerRanking>(sql, new
+                    retVal.Data = connection.Query<UserBeerRanking, Beer, UserBeerRanking>(sql,
+                    map: (r, b) =>
+                    {
+                        r.Beer = b;
+                        return r;
+                    },
+                    splitOn: "Beer_FK",
+                    param: new
                     {
                         UserId = userId,
                         BeerId = beerId
@@ -131,10 +141,41 @@ namespace CMSC495Team3ServerApp.Repository
 
             return retVal;
         }
+//public TransactionResult<UserBeerRanking> FindSingleByUserAndBeerId(int userId, int beerId)
+//        {
+//            const string sql = "SELECT * FROM UserBeerRanking " +
+//                               "WHERE User_FK = @UserId AND Beer_FK = @BeerId";
 
-        public TransactionResult<ICollection<UserBeerRanking>> Find(int userId)
+//            var retVal = new TransactionResult<UserBeerRanking>();
+
+//            try
+//            {
+//                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
+//                {
+//                    connection.Open();
+//                    retVal.Data = connection.Query<UserBeerRanking>(sql, new
+//                    {
+//                        UserId = userId,
+//                        BeerId = beerId
+//                    }).FirstOrDefault();
+
+//                    retVal.Success = true;
+//                }
+//            }
+//            catch (Exception e)
+//            {
+//                Log.Error($"Could not perform FIND using User_FK - '{userId}', Beer_FK - '{beerId}'", e);
+
+//                retVal.Success = false;
+//                retVal.Details = e.Message;
+//            }
+
+//            return retVal;
+//        }
+
+        public TransactionResult<ICollection<UserBeerRanking>> FindAllByUserId(int userId)
         {
-            const string sql = "SELECT * FROM UserBeerRankings" +
+            const string sql = "SELECT * FROM UserBeerRanking " +
                                "WHERE User_FK = @UserId";
 
             var retVal = new TransactionResult<ICollection<UserBeerRanking>>();
@@ -148,9 +189,18 @@ namespace CMSC495Team3ServerApp.Repository
                     {
                         UserId = userId
                     }).ToList();
-
-                    retVal.Success = true;
                 }
+
+                //if (retVal.Data != null)
+                //{
+                //    foreach (var beerRanking in retVal.Data)
+                //    {
+                //        if (beerRanking == null) continue;
+                //        beerRanking.Beer = beerRepo.FindById(beerRanking.Beer_FK).Data;
+                //    }
+                //}
+
+                retVal.Success = true;
             }
             catch (Exception e)
             {
@@ -163,16 +213,10 @@ namespace CMSC495Team3ServerApp.Repository
             return retVal;
         }
 
-        public TransactionResult<ICollection<UserBeerRanking>> Find(int beerId, bool isUntappdId)
+        public TransactionResult<ICollection<UserBeerRanking>> FindAllByBeerId(int id)
         {
-            //TODO: figure this part out... 
-            var sql = "SELECT * FROM UserBeerRankings u" +
-                      (isUntappdId
-                          ? "INNER JOIN Beer b ON u.Beer_FK = b.UntappId " +
-                            "WHERE b.UntappdId = @beerId"
-                          : "WHERE BeerId = @beerId"
-                      );
-            //$"WHERE { (!isUntappdId ? "Beer_FK = @BeerId" : "" )}";
+            const string sql = "SELECT * FROM UserBeerRanking " +
+                               "WHERE Beer_FK = @id";
 
             var retVal = new TransactionResult<ICollection<UserBeerRanking>>();
 
@@ -183,16 +227,24 @@ namespace CMSC495Team3ServerApp.Repository
                     connection.Open();
                     retVal.Data = connection.Query<UserBeerRanking>(sql, new
                     {
-                        BeerId = beerId
+                        id
                     }).ToList();
-
-                    retVal.Success = true;
                 }
+
+                if (retVal.Data != null)
+                {
+                    foreach (var beerRanking in retVal.Data)
+                    {
+                        if (beerRanking == null) continue;
+                        beerRanking.Beer = beerRepo.FindById(beerRanking.Beer_FK).Data;
+                    }
+                }
+
+                retVal.Success = true;
             }
             catch (Exception e)
             {
-                Log.Error($"Could not perform FIND using {(isUntappdId ? "UntappdId" : "BeerId")} - " +
-                          $"'{beerId}'", e);
+                Log.Error($"Could not perform FIND using Beer_FK - '{id}'", e);
 
                 retVal.Success = false;
                 retVal.Details = e.Message;
@@ -201,22 +253,178 @@ namespace CMSC495Team3ServerApp.Repository
             return retVal;
         }
 
-        public override TransactionResult<UserBeerRanking> Update(UserBeerRanking appObj)
+        public TransactionResult<ICollection<UserBeerRanking>> FindAllByUntappdId(int id)
         {
-            throw new NotImplementedException();
+            const string sql = "SELECT * FROM UserBeerRanking AS r " +
+                               "INNER JOIN Beer AS b " +
+                               "ON r.Beer_FK = b.BeerId " +
+                               "WHERE b.UntappdId = @id";
+
+            var retVal = new TransactionResult<ICollection<UserBeerRanking>>();
+
+            try
+            {
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
+                {
+                    retVal.Data = connection.Query<UserBeerRanking, Beer, UserBeerRanking>(
+                        sql,
+                        (ranking, beer) =>
+                        {
+                            ranking.Beer = beer;
+                            return ranking;
+                        },
+                        splitOn: "Beer_FK",
+                        param: new
+                        {
+                            id
+                        }).Distinct().ToList();
+                }
+
+                retVal.Success = true;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Could not perform FIND using UntappdId - '{id}'", e);
+
+                retVal.Success = false;
+                retVal.Details = e.Message;
+            }
+
+            return retVal;
         }
+
+        //public TransactionResult<ICollection<UserBeerRanking>> FindAllByUntappdId(int id)
+        //{
+        //    //throw new NotImplementedException();
+        //    const string sql = "SELECT * FROM UserBeerRanking AS r " +
+        //                       "INNER JOIN Beer AS b " +
+        //                       "ON r.Beer_FK = b.BeerId " +
+        //                       "WHERE b.UntappdId = @id";
+
+        //    var retVal = new TransactionResult<ICollection<UserBeerRanking>>();
+
+        //    try
+        //    {
+        //        using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
+        //        {
+        //            connection.Open();
+
+        //            var queryRecords = connection.Query<UserBeerRanking, Beer>(sql,
+        //                (userBeerRanking, beer) =>
+        //                {
+
+        //                })
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Log.Error($"Could not perform FIND using UntappdId - '{id}'", e);
+
+        //        retVal.Success = false;
+        //        retVal.Details = e.Message;
+        //    }
+
+        //    return retVal;
+        //}
+
+        public TransactionResult<ICollection<UserBeerRanking>> FindAllByBreweryDbId(int id)
+        {
+            const string sql = "SELECT * FROM UserBeerRanking AS r " +
+                               "INNER JOIN Beer AS b " +
+                               "ON r.Beer_FK = b.BeerId " +
+                               "WHERE b.BreweryDbId = @id";
+
+            var retVal = new TransactionResult<ICollection<UserBeerRanking>>();
+
+            try
+            {
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
+                {
+                    retVal.Data = connection.Query<UserBeerRanking, Beer, UserBeerRanking>(
+                        sql,
+                        (ranking, beer) =>
+                        {
+                            ranking.Beer = beer;
+                            return ranking;
+                        },
+                        splitOn: "Beer_FK", 
+                        param: new
+                        {
+                            id
+                        } ).Distinct().ToList();
+                }
+
+                retVal.Success = true;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Could not perform FIND using UntappdId - '{id}'", e);
+
+                retVal.Success = false;
+                retVal.Details = e.Message;
+            }
+
+            return retVal;
+        }
+
+
+
+        //public TransactionResult<ICollection<UserBeerRanking>> Find(int beerId, bool isUntappdId)
+        //{
+        //    //TODO: figure this part out... 
+        //    var sql = "SELECT * FROM UserBeerRankings u" +
+        //              (isUntappdId
+        //                  ? "INNER JOIN Beer b ON u.Beer_FK = b.UntappId " +
+        //                    "WHERE b.UntappdId = @beerId"
+        //                  : "WHERE BeerId = @beerId"
+        //              );
+        //    //$"WHERE { (!isUntappdId ? "Beer_FK = @BeerId" : "" )}";
+
+        //    var retVal = new TransactionResult<ICollection<UserBeerRanking>>();
+
+        //    try
+        //    {
+        //        using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
+        //        {
+        //            connection.Open();
+        //            retVal.Data = connection.Query<UserBeerRanking>(sql, new
+        //            {
+        //                BeerId = beerId
+        //            }).ToList();
+
+        //            retVal.Success = true;
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Log.Error($"Could not perform FIND using {(isUntappdId ? "UntappdId" : "BeerId")} - " +
+        //                  $"'{beerId}'", e);
+
+        //        retVal.Success = false;
+        //        retVal.Details = e.Message;
+        //    }
+
+        //    return retVal;
+        //}
+
+        
     }
 
     public interface IUserBeerRankingRepo
     {
-        void Insert(UserBeerRanking appObj, int userId);
+        //void Insert(UserBeerRanking appObj, int userId);
+        TransactionResult<bool> Insert(UserBeerRanking appObj);
 
-        TransactionResult<UserBeerRanking> Update(UserBeerRanking appObj, int userId);
+        TransactionResult<UserBeerRanking> Update(UserBeerRanking appObj);
 
-        TransactionResult<UserBeerRanking> Find(int userId, int beerId);
+        TransactionResult<UserBeerRanking> FindSingleByUserAndBeerId(int userId, int beerId);
 
-        TransactionResult<ICollection<UserBeerRanking>> Find(int userId);
+        TransactionResult<ICollection<UserBeerRanking>> FindAllByUserId(int userId);
 
-        TransactionResult<ICollection<UserBeerRanking>> Find(int beerId, bool isUntappdId);
+        TransactionResult<ICollection<UserBeerRanking>> FindAllByBeerId(int id);
+
+        TransactionResult<ICollection<UserBeerRanking>> FindAllByUntappdId(int id);
+
+        TransactionResult<ICollection<UserBeerRanking>> FindAllByBreweryDbId(int id);
     }
 }

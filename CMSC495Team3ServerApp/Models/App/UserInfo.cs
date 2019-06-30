@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace CMSC495Team3ServerApp.Models.App
 {
@@ -6,6 +7,7 @@ namespace CMSC495Team3ServerApp.Models.App
     {
         public string UserName { get; set; }
 
+        [JsonIgnore]
         public string Password { get; set; }
 
         public string UserEmail { get; set; }

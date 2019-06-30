@@ -42,9 +42,6 @@
     <Reference Include="DapperExtensions, Version=1.6.3.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\DapperExtensions.1.6.3\lib\net45\DapperExtensions.dll</HintPath>
     </Reference>
-    <Reference Include="FastMember, Version=1.5.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\FastMember.1.5.0\lib\net461\FastMember.dll</HintPath>
-    </Reference>
     <Reference Include="MySql.Data, Version=8.0.16.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL" />
     <Reference Include="MySql.Web, Version=8.0.16.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL" />
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -83,6 +80,7 @@
     <Compile Include="Models\App\SocialMedia.cs" />
     <Compile Include="Models\App\SocialMediaAccount.cs" />
     <Compile Include="Models\App\UserInfo.cs" />
+    <Compile Include="Models\RestDoc.cs" />
     <Compile Include="Models\Untappd\Beer.cs" />
     <Compile Include="Models\Untappd\Brewery.cs" />
     <Compile Include="Models\Untappd\Contact.cs" />
@@ -102,9 +100,11 @@
     <Compile Include="Repository\UserInfoRepo.cs" />
     <Compile Include="RequestHandlers\BeerHandler.cs" />
     <Compile Include="RequestHandlers\BreweryHandler.cs" />
-    <Compile Include="RequestHandlers\IRequestHandler.cs" />
-    <Compile Include="RequestHandlers\IRequestHandlerFactory.cs" />
-    <Compile Include="RequestHandlers\RequestHandlerBase.cs" />
+    <Compile Include="RequestHandlers\ErrorResponseFactory.cs" />
+    <Compile Include="RequestHandlers\ErrorResponseHandlerBase.cs" />
+    <Compile Include="RequestHandlers\IErrorResponseHandler.cs" />
+    <Compile Include="RequestHandlers\ISupportedRequestHandler.cs" />
+    <Compile Include="RequestHandlers\SupportedRequestHandlerBase.cs" />
     <Compile Include="RequestHandlers\RequestHandlerFactory.cs" />
     <Compile Include="RequestHandlers\ReviewHandler.cs" />
     <Compile Include="RequestHandlers\SearchHandler.cs" />
