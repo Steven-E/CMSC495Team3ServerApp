@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Data.SqlClient;
 using System.Linq;
 using CMSC495Team3ServerApp.Logging;
 using CMSC495Team3ServerApp.Models.App;
 using CMSC495Team3ServerApp.Provider;
 using Dapper;
+using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 
 namespace CMSC495Team3ServerApp.Repository
@@ -13,7 +13,8 @@ namespace CMSC495Team3ServerApp.Repository
     {
         private readonly IBeerRepo beerRepo;
 
-        public BreweryRepo(ILogger logger, IConfigProvider configProvider, IBeerRepo beerRepo) : base(logger, configProvider)
+        public BreweryRepo(ILogger logger, IConfigProvider configProvider, IBeerRepo beerRepo) : base(logger,
+            configProvider)
         {
             this.beerRepo = beerRepo;
         }
@@ -41,18 +42,18 @@ namespace CMSC495Team3ServerApp.Repository
 
             try
             {
-                using (var connection = new SqlConnection(Config.DatabaseConnectionString))
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
                     connection.Execute(sql, new
                     {
-                        BreweryName = appObj.BreweryName,
-                        Address = appObj.Address,
-                        Phone = appObj.Phone,
-                        UntappdId = appObj.UntappdId,
-                        BreweryDbId = appObj.BreweryDbId,
-                        LabelUrl = appObj.LabelUrl,
-                        OrgType = appObj.OrgType
+                        appObj.BreweryName,
+                        appObj.Address,
+                        appObj.Phone,
+                        appObj.UntappdId,
+                        appObj.BreweryDbId,
+                        appObj.LabelUrl,
+                        appObj.OrgType
                     });
 
                     retVal.Data = appObj;
@@ -86,19 +87,19 @@ namespace CMSC495Team3ServerApp.Repository
 
             try
             {
-                using (var connection = new SqlConnection(Config.DatabaseConnectionString))
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
                     connection.Execute(sql, new
                     {
-                        BreweryName = appObj.BreweryName,
-                        Address = appObj.Address,
-                        Phone = appObj.Phone,
-                        UntappdId = appObj.UntappdId,
-                        BreweryDbId = appObj.BreweryDbId,
-                        LabelUrl = appObj.LabelUrl,
-                        OrgType = appObj.OrgType,
-                        BreweryId = appObj.BreweryId
+                        appObj.BreweryName,
+                        appObj.Address,
+                        appObj.Phone,
+                        appObj.UntappdId,
+                        appObj.BreweryDbId,
+                        appObj.LabelUrl,
+                        appObj.OrgType,
+                        appObj.BreweryId
                     });
 
                     retVal.Data = appObj;
@@ -116,31 +117,122 @@ namespace CMSC495Team3ServerApp.Repository
             return retVal;
         }
 
-        public TransactionResult<Brewery> Find(int breweryId, bool isUntappd)
+        //public TransactionResult<Brewery> FindByBeerId(int beerId)
+        //{
+        //    const string sql = "SELECT * FROM Brewery WHERE " +
+        //                       "BreweryId = @Id";
+
+        //    var retVal = new TransactionResult<Brewery>();
+
+        //    try
+        //    {
+
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Log.Error($"Could not perform FIND using BreweryId - {id}'", e);
+
+        //        retVal.Success = false;
+        //        retVal.Details = e.Message;
+        //    }
+
+        //    return retVal;
+        //}
+
+        public TransactionResult<Brewery> FindById(int id, bool getBeers)
         {
-            string sql = "SELECT * FROM Brewery WHERE " +
-                         $"{(isUntappd ? "UntappdId = " : "BreweryId = ")} @BreweryId";
+            const string sql = "SELECT * FROM Brewery WHERE " +
+                               "BreweryId = @Id";
 
             var retVal = new TransactionResult<Brewery>();
 
             try
             {
-                using (var connection = new SqlConnection(Config.DatabaseConnectionString))
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
                     retVal.Data = connection.Query<Brewery>(sql, new
                     {
-                        BrewerId = breweryId
+                        Id = id
                     }).FirstOrDefault();
 
-                    retVal.Data.Beers = beerRepo.Find(breweryId).Data.ToList();
+                    if (retVal?.Data != null && getBeers)
+                        retVal.Data.Beers = beerRepo.FindByBreweryId(id).Data.ToList();
+
                     retVal.Success = true;
                 }
             }
             catch (Exception e)
             {
-                Log.Error($"Could not perform FIND using {(isUntappd ? "UntappdId" : "BreweryId")} - " +
-                          $"'{breweryId}'", e);
+                Log.Error($"Could not perform FIND using BreweryId - {id}'", e);
+
+                retVal.Success = false;
+                retVal.Details = e.Message;
+            }
+
+            return retVal;
+        }
+
+        public TransactionResult<Brewery> FindByUntappdId(int id, bool getBeers)
+        {
+            const string sql = "SELECT * FROM Brewery WHERE " +
+                               "UntappdId = @Id";
+
+            var retVal = new TransactionResult<Brewery>();
+
+            try
+            {
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
+                {
+                    connection.Open();
+                    retVal.Data = connection.Query<Brewery>(sql, new
+                    {
+                        Id = id
+                    }).FirstOrDefault();
+
+                    if (retVal?.Data != null && getBeers)
+                        retVal.Data.Beers = beerRepo.FindByBreweryId(retVal.Data.BreweryId).Data.ToList();
+
+                    retVal.Success = true;
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Could not perform FIND using UntappdId - {id}'", e);
+
+                retVal.Success = false;
+                retVal.Details = e.Message;
+            }
+
+            return retVal;
+        }
+
+        public TransactionResult<Brewery> FindBreweryDbId(int id, bool getBeers)
+        {
+            const string sql = "SELECT * FROM Brewery WHERE " +
+                               "BreweryDbId = @Id";
+
+            var retVal = new TransactionResult<Brewery>();
+
+            try
+            {
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
+                {
+                    connection.Open();
+                    retVal.Data = connection.Query<Brewery>(sql, new
+                    {
+                        Id = id
+                    }).FirstOrDefault();
+
+                    if (retVal?.Data != null && getBeers)
+                        retVal.Data.Beers = beerRepo.FindByBreweryId(retVal.Data.BreweryId).Data.ToList();
+
+                    retVal.Success = true;
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Could not perform FIND using BreweryDbId - {id}'", e);
 
                 retVal.Success = false;
                 retVal.Details = e.Message;
@@ -151,7 +243,7 @@ namespace CMSC495Team3ServerApp.Repository
 
         public override TransactionResult<Brewery> Update(Brewery appObj, int referenceKey)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 
@@ -161,6 +253,12 @@ namespace CMSC495Team3ServerApp.Repository
 
         TransactionResult<Brewery> Update(Brewery appObj);
 
-        TransactionResult<Brewery> Find(int breweryId, bool isUntappd);
+        //TransactionResult<Brewery> FindByBeerId(int beerId);
+
+        TransactionResult<Brewery> FindById(int id, bool getBeers);
+
+        TransactionResult<Brewery> FindByUntappdId(int id, bool getBeers);
+
+        TransactionResult<Brewery> FindBreweryDbId(int id, bool getBeers);
     }
 }

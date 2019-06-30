@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Linq;
 using CMSC495Team3ServerApp.Logging;
 using CMSC495Team3ServerApp.Models.App;
 using CMSC495Team3ServerApp.Provider;
 using Dapper;
+using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 
 namespace CMSC495Team3ServerApp.Repository
@@ -37,7 +37,7 @@ namespace CMSC495Team3ServerApp.Repository
             //"SELECT LAST_INSERT_ID();";
             try
             {
-                using (var connection = new SqlConnection(Config.DatabaseConnectionString))
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
                     connection.Execute(sql, new
@@ -72,7 +72,7 @@ namespace CMSC495Team3ServerApp.Repository
 
             try
             {
-                using (var connection = new SqlConnection(Config.DatabaseConnectionString))
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
                     connection.Execute(sql, new
@@ -109,7 +109,7 @@ namespace CMSC495Team3ServerApp.Repository
 
             try
             {
-                using (var connection = new SqlConnection(Config.DatabaseConnectionString))
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
                     retVal.Data = connection.Query<UserBeerRanking>(sql, new
@@ -141,7 +141,7 @@ namespace CMSC495Team3ServerApp.Repository
 
             try
             {
-                using (var connection = new SqlConnection(Config.DatabaseConnectionString))
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
                     retVal.Data = connection.Query<UserBeerRanking>(sql, new
@@ -178,7 +178,7 @@ namespace CMSC495Team3ServerApp.Repository
 
             try
             {
-                using (var connection = new SqlConnection(Config.DatabaseConnectionString))
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
                     retVal.Data = connection.Query<UserBeerRanking>(sql, new

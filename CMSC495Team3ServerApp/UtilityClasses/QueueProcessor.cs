@@ -7,18 +7,14 @@ namespace CMSC495Team3ServerApp.UtilityClasses
 {
     public class QueueProcessor<T>
     {
-        private CancellationToken cancellationToken;
-
         private readonly BlockingCollection<T> queue;
 
         private readonly Action<T> workAction;
+        private readonly CancellationToken cancellationToken;
 
         public QueueProcessor(Action<T> workAction, CancellationToken cancellationToken, int capacity = 100000)
         {
-            if (workAction == null)
-            {
-                throw new ArgumentNullException(nameof(workAction), "Action must be set.");
-            }
+            if (workAction == null) throw new ArgumentNullException(nameof(workAction), "Action must be set.");
 
             queue = new BlockingCollection<T>(capacity);
             this.workAction = workAction;
@@ -30,7 +26,6 @@ namespace CMSC495Team3ServerApp.UtilityClasses
         private void ProcessQueue()
         {
             while (!cancellationToken.IsCancellationRequested)
-            {
                 try
                 {
                     workAction(queue.Take(cancellationToken));
@@ -38,7 +33,6 @@ namespace CMSC495Team3ServerApp.UtilityClasses
                 catch (OperationCanceledException)
                 {
                 }
-            }
         }
 
         public void Add(T data)
@@ -52,5 +46,4 @@ namespace CMSC495Team3ServerApp.UtilityClasses
             }
         }
     }
-
 }

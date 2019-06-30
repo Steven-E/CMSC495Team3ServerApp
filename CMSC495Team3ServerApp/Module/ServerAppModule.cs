@@ -19,6 +19,8 @@ namespace CMSC495Team3ServerApp.Module
 
             Bind<IRequestHandlerFactory>().To<RequestHandlerFactory>().InSingletonScope();
 
+            Bind<IErrorResponseFactory>().To<ErrorResponseFactory>().InSingletonScope();
+
             // Repo bindings
             Bind<IBeerRepo>().To<BeerRepo>();
             Bind<IBreweryRepo>().To<BreweryRepo>();
@@ -26,8 +28,15 @@ namespace CMSC495Team3ServerApp.Module
             Bind<IUserBeerRankingRepo>().To<UserBeerRankingRepo>();
             Bind<ISocialMediaRepo>().To<SocialMediaRepo>();
             Bind<ISocialMediaAccountRepo>().To<SocialMediaAccountRepo>();
-            
 
+            Kernel.Bind(x =>
+            {
+                x.FromThisAssembly()
+                    .SelectAllClasses()
+                    .InheritedFrom<IErrorResponseHandler>()
+                    .BindAllInterfaces()
+                    .Configure(b => { b.InSingletonScope(); });
+            });
 
             Kernel.Bind(
                 x =>
@@ -35,7 +44,8 @@ namespace CMSC495Team3ServerApp.Module
                     x.FromThisAssembly()
                         .SelectAllClasses()
                         .InheritedFrom<IRequestHandler>()
-                        .BindAllInterfaces();
+                        .BindAllInterfaces()
+                        .Configure(b => { b.InSingletonScope(); });
                 });
         }
     }

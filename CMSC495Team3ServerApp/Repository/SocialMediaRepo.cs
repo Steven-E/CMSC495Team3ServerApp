@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Data.SqlClient;
 using System.Linq;
 using CMSC495Team3ServerApp.Logging;
 using CMSC495Team3ServerApp.Models.App;
 using CMSC495Team3ServerApp.Provider;
 using Dapper;
+using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 
 namespace CMSC495Team3ServerApp.Repository
@@ -23,14 +23,14 @@ namespace CMSC495Team3ServerApp.Repository
 
             try
             {
-                using (var connection = new SqlConnection(Config.DatabaseConnectionString))
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
                     connection.Query(sql, new
                     {
                         Vender = appObj.Vendor,
-                        BaseUrl = appObj.BaseUrl,
-                        ApiUrl = appObj.ApiUrl
+                        appObj.BaseUrl,
+                        appObj.ApiUrl
                     });
                 }
             }
@@ -38,16 +38,6 @@ namespace CMSC495Team3ServerApp.Repository
             {
                 Log.Error($"Could not insert '{JsonConvert.SerializeObject(appObj)}.'", e);
             }
-        }
-
-        public override TransactionResult<SocialMedia> Update(SocialMedia appObj)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override TransactionResult<SocialMedia> Update(SocialMedia appObj, int referenceKey)
-        {
-            throw new System.NotImplementedException();
         }
 
 
@@ -59,7 +49,7 @@ namespace CMSC495Team3ServerApp.Repository
 
             try
             {
-                using (var connection = new SqlConnection(Config.DatabaseConnectionString))
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
                     retVal.Data = connection.Query<SocialMedia>(sql, new
@@ -72,7 +62,7 @@ namespace CMSC495Team3ServerApp.Repository
             }
             catch (Exception e)
             {
-                Log.Error($"Could not perform FIND using Vender Id - " +
+                Log.Error("Could not perform FIND using Vender Id - " +
                           $"'{vendorId}'", e);
 
                 retVal.Success = false;
@@ -82,6 +72,15 @@ namespace CMSC495Team3ServerApp.Repository
             return retVal;
         }
 
+        public override TransactionResult<SocialMedia> Update(SocialMedia appObj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override TransactionResult<SocialMedia> Update(SocialMedia appObj, int referenceKey)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public interface ISocialMediaRepo

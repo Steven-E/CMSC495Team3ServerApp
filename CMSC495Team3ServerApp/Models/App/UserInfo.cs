@@ -23,7 +23,5 @@ namespace CMSC495Team3ServerApp.Models.App
         public List<UserBeerRanking> BeerRankings { get; set; }
 
         public List<SocialMediaAccount> SocialAccounts { get; set; }
-
-
     }
 }

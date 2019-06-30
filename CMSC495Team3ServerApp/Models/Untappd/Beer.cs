@@ -17,6 +17,7 @@
         public double rating_score { get; set; }
         public Brewery brewery { get; set; }
         public int auth_rating { get; set; }
+
         public bool wish_list { get; set; }
         //public Similar similar { get; set; }
     }

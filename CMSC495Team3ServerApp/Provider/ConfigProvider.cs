@@ -10,15 +10,10 @@ namespace CMSC495Team3ServerApp.Provider
 {
     public class ConfigProvider : IConfigProvider
     {
-        private readonly ILogger log;
-
         private const string NOT_DEFINED = " was not defined in the environment variables.";
 
         private const string NOT_VALID = " does not have a valid value in the environment variables.";
-
-        public string DatabaseConnectionString { get; private set; }
-
-        public string ExposedHttpUrl { get; private set; }
+        private readonly ILogger log;
 
         private readonly List<ArgumentException> ValidationErrors;
 
@@ -38,15 +33,16 @@ namespace CMSC495Team3ServerApp.Provider
             log.Info("----------------------------------------------------");
 
 
-            if (!ValidationErrors.Any())
-            {
-                return;
-            }
+            if (!ValidationErrors.Any()) return;
 
             ValidationErrors.ForEach(error => log.Fatal(error.Message));
 
             throw new AggregateException(ValidationErrors);
         }
+
+        public string DatabaseConnectionString { get; private set; }
+
+        public string ExposedHttpUrl { get; private set; }
 
         private void GetEnvironmentVariables()
         {
@@ -62,7 +58,7 @@ namespace CMSC495Team3ServerApp.Provider
         private T GetConfiguration<T>(string keyName) where T : IConvertible
         {
             var configSection =
-                (NameValueCollection)ConfigurationManager.GetSection("serverSettings");
+                (NameValueCollection) ConfigurationManager.GetSection("serverSettings");
 
             var value = configSection.Get(keyName);
 
@@ -81,7 +77,7 @@ namespace CMSC495Team3ServerApp.Provider
 
             try
             {
-                return (T)converter.ConvertFromString(value);
+                return (T) converter.ConvertFromString(value);
             }
             catch (Exception)
             {
@@ -93,7 +89,7 @@ namespace CMSC495Team3ServerApp.Provider
 
         public T GetVariableValue<T>(string sectionName)
         {
-            return (T)ConfigurationManager.GetSection(sectionName);
+            return (T) ConfigurationManager.GetSection(sectionName);
         }
 
         private IEnumerable<T> GetConfiguration<T>(string keyName, char delimiter) where T : IConvertible
@@ -117,7 +113,7 @@ namespace CMSC495Team3ServerApp.Provider
 
             try
             {
-                var convertedValues = values.Select(val => (T)converter.ConvertFromString(val)).ToList();
+                var convertedValues = values.Select(val => (T) converter.ConvertFromString(val)).ToList();
 
                 return convertedValues;
             }

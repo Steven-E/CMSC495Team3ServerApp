@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Linq;
 using CMSC495Team3ServerApp.Logging;
 using CMSC495Team3ServerApp.Models.App;
 using CMSC495Team3ServerApp.Provider;
 using Dapper;
+using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 
 namespace CMSC495Team3ServerApp.Repository
@@ -16,7 +16,8 @@ namespace CMSC495Team3ServerApp.Repository
         private readonly ISocialMediaAccountRepo socialAccRepo;
 
 
-        public UserInfoRepo(ILogger logger, IConfigProvider configProvider, IUserBeerRankingRepo rankRepo, ISocialMediaAccountRepo socialAccRepo) : base(logger, configProvider)
+        public UserInfoRepo(ILogger logger, IConfigProvider configProvider, IUserBeerRankingRepo rankRepo,
+            ISocialMediaAccountRepo socialAccRepo) : base(logger, configProvider)
         {
             this.rankRepo = rankRepo;
             this.socialAccRepo = socialAccRepo;
@@ -33,32 +34,26 @@ namespace CMSC495Team3ServerApp.Repository
             {
                 int userId;
 
-                using (var connection = new SqlConnection(Config.DatabaseConnectionString))
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
                     userId = connection.Query<int>(sql, new
                     {
-                        UserName = appObj.UserName,
-                        Password = appObj.Password,
-                        UserEmail = appObj.UserEmail,
-                        FirstName = appObj.FirstName,
-                        LastName = appObj.LastName,
-                        Location = appObj.Location,
-                        UntappdId = appObj.UntappdId
+                        appObj.UserName,
+                        appObj.Password,
+                        appObj.UserEmail,
+                        appObj.FirstName,
+                        appObj.LastName,
+                        appObj.Location,
+                        appObj.UntappdId
                     }).Single();
-                    
+
                     //if appObject has nested values....
                 }
 
-                foreach (var ranking in appObj.BeerRankings)
-                {
-                    rankRepo.Insert(ranking, userId);
-                }
+                foreach (var ranking in appObj.BeerRankings) rankRepo.Insert(ranking, userId);
 
-                foreach (var account in appObj.SocialAccounts)
-                {
-                    socialAccRepo.Insert(account, userId);
-                }
+                foreach (var account in appObj.SocialAccounts) socialAccRepo.Insert(account, userId);
             }
             catch (Exception e)
             {
@@ -77,38 +72,34 @@ namespace CMSC495Team3ServerApp.Repository
                                "UntappdId = @UntappdId " +
                                "WHERE UserId = @UserId;";
 
-            TransactionResult<UserInfo> retVal = new TransactionResult<UserInfo>();
+            var retVal = new TransactionResult<UserInfo>();
 
             try
             {
-                using (var connection = new SqlConnection(Config.DatabaseConnectionString))
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
                     connection.Execute(sql, new
                     {
-                        UserName = appObj.UserName,
-                        UserEmail = appObj.UserEmail,
-                        FirstName = appObj.FirstName,
-                        LastName = appObj.LastName,
-                        Location = appObj.Location,
-                        UntappdId = appObj.UntappdId,
-                        UserId = appObj.UserId
+                        appObj.UserName,
+                        appObj.UserEmail,
+                        appObj.FirstName,
+                        appObj.LastName,
+                        appObj.Location,
+                        appObj.UntappdId,
+                        appObj.UserId
                     });
                 }
 
-                var userRankingCollection = new List<TransactionResult<UserBeerRanking>>(); 
+                var userRankingCollection = new List<TransactionResult<UserBeerRanking>>();
 
                 foreach (var ranking in appObj.BeerRankings)
-                {
                     userRankingCollection.Add(rankRepo.Update(ranking, appObj.UserId));
-                }
 
                 var socialAccountsCollection = new List<TransactionResult<SocialMediaAccount>>();
 
                 foreach (var account in appObj.SocialAccounts)
-                {
                     socialAccountsCollection.Add(socialAccRepo.Update(account, appObj.UserId));
-                }
 
                 appObj.BeerRankings = userRankingCollection.Where(e => e.Success).Select(e => e.Data).ToList();
                 appObj.SocialAccounts = socialAccountsCollection.Where(e => e.Success).Select(e => e.Data).ToList();
@@ -127,22 +118,17 @@ namespace CMSC495Team3ServerApp.Repository
             return retVal;
         }
 
-        public override TransactionResult<UserInfo> Update(UserInfo appObj, int referenceKey)
-        {
-            throw new NotImplementedException();
-        }
-
         public TransactionResult<UserInfo> Find(int userId, bool isUntappdId)
         {
-            string sql = "SELECT * FROM UserInfo WHERE " +
-                         $"{(isUntappdId ? "UntappdId = " : "UserId = ")}" +
-                         $"@UserId";
+            var sql = "SELECT * FROM UserInfo WHERE " +
+                      $"{(isUntappdId ? "UntappdId = " : "UserId = ")}" +
+                      "@UserId";
 
             var retVal = new TransactionResult<UserInfo>();
 
             try
             {
-                using (var connection = new SqlConnection(Config.DatabaseConnectionString))
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
                     retVal.Data = connection.Query<UserInfo>(sql, new
@@ -163,6 +149,11 @@ namespace CMSC495Team3ServerApp.Repository
             }
 
             return retVal;
+        }
+
+        public override TransactionResult<UserInfo> Update(UserInfo appObj, int referenceKey)
+        {
+            throw new NotImplementedException();
         }
     }
 

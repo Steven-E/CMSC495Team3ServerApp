@@ -1,8 +1,10 @@
-﻿namespace CMSC495Team3ServerApp.Models.App
+﻿using Newtonsoft.Json;
+
+namespace CMSC495Team3ServerApp.Models.App
 {
     public class Beer
     {
-        public Brewery Brewery { get; set; }
+        //public Brewery Brewery { get; set; }
 
         public int BeerId { get; set; }
 
@@ -24,5 +26,10 @@
 
         //TODO: consider changing this to a locally cached image path
         public string LabelUrl { get; set; }
+
+        [JsonProperty("BreweryId")] public int Brewery_FK { get; set; }
+
+        //[JsonIgnore]
+        //public int Brewery_FK { get; set; }
     }
 }

@@ -5,6 +5,5 @@
         string DatabaseConnectionString { get; }
 
         string ExposedHttpUrl { get; }
-
     }
 }

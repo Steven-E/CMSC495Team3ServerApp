@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Data.SqlClient;
 using CMSC495Team3ServerApp.Logging;
 using CMSC495Team3ServerApp.Models.App;
 using CMSC495Team3ServerApp.Provider;
 using Dapper;
+using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 
 namespace CMSC495Team3ServerApp.Repository
@@ -23,14 +23,14 @@ namespace CMSC495Team3ServerApp.Repository
 
             try
             {
-                using (var connection = new SqlConnection(Config.DatabaseConnectionString))
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
                     connection.Execute(sql, new
                     {
                         User = userId,
                         Vender = appObj.Vendor.Vendor,
-                        AccountId =appObj.AccountId
+                        appObj.AccountId
                     });
                 }
             }
@@ -38,11 +38,6 @@ namespace CMSC495Team3ServerApp.Repository
             {
                 Log.Error($"Could not insert '{JsonConvert.SerializeObject(appObj)}.'", e);
             }
-        }
-
-        public override TransactionResult<SocialMediaAccount> Update(SocialMediaAccount appObj)
-        {
-            throw new NotImplementedException();
         }
 
         public override TransactionResult<SocialMediaAccount> Update(SocialMediaAccount appObj, int userId)
@@ -53,18 +48,18 @@ namespace CMSC495Team3ServerApp.Repository
                 "WHERE User_FK = @UserId " +
                 "AND Vendor_FK = @Vendor";
 
-            TransactionResult<SocialMediaAccount> retVal = new TransactionResult<SocialMediaAccount>();
+            var retVal = new TransactionResult<SocialMediaAccount>();
 
             try
             {
-                using (var connection = new SqlConnection(Config.DatabaseConnectionString))
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
                     connection.Execute(sql, new
                     {
                         UserId = userId,
-                        AccountId = appObj.AccountId,
-                        Vendor = appObj.Vendor.Vendor
+                        appObj.AccountId,
+                        appObj.Vendor.Vendor
                     });
                 }
 
@@ -80,6 +75,11 @@ namespace CMSC495Team3ServerApp.Repository
             }
 
             return retVal;
+        }
+
+        public override TransactionResult<SocialMediaAccount> Update(SocialMediaAccount appObj)
+        {
+            throw new NotImplementedException();
         }
     }
 

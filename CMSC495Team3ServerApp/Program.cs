@@ -20,7 +20,7 @@ namespace CMSC495Team3ServerApp
         private static async Task<int> RunAsync()
         {
             await service.Start();
-
+            
             return service.CancellationTokenSource.IsCancellationRequested ? 1067 : 0;
         }
     }

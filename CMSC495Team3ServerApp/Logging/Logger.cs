@@ -10,12 +10,12 @@ namespace CMSC495Team3ServerApp.Logging
 {
     public class Logger : ILogger
     {
-        private readonly CancellationTokenSource cancellationTokenSource;
-
         private static readonly string logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
 
         private static readonly string filePath = Path.Combine(logDirectory,
             $"ServerApp_{DateTime.UtcNow:yyyy-MM-dd}.log");
+
+        private readonly CancellationTokenSource cancellationTokenSource;
 
         private readonly FileStream fileStream;
 
@@ -46,22 +46,6 @@ namespace CMSC495Team3ServerApp.Logging
             }
 
             fileStream = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
-        }
-
-        private void Write(string content)
-        {
-            Task.Run(() => Console.Out.WriteAsync(content), cancellationTokenSource.Token).ConfigureAwait(false);
-
-            Task.Run(() =>
-            {
-                var byteArrayContent = new UTF8Encoding(true).GetBytes(content);
-
-                fileStream.Position = fileStream.Length;
-
-                fileStream.WriteAsync(byteArrayContent, 0, byteArrayContent.Length).Wait();
-
-                fileStream.Flush();
-            }).ConfigureAwait(true);
         }
 
         public void Debug(string content, [CallerFilePath] string callerName = "",
@@ -117,6 +101,21 @@ namespace CMSC495Team3ServerApp.Logging
 
             queueProcessor.Add(logStatement);
         }
-    }
 
+        private void Write(string content)
+        {
+            Task.Run(() => Console.Out.WriteAsync(content), cancellationTokenSource.Token).ConfigureAwait(false);
+
+            Task.Run(() =>
+            {
+                var byteArrayContent = new UTF8Encoding(true).GetBytes(content);
+
+                fileStream.Position = fileStream.Length;
+
+                fileStream.WriteAsync(byteArrayContent, 0, byteArrayContent.Length).Wait();
+
+                fileStream.Flush();
+            }).ConfigureAwait(true);
+        }
+    }
 }

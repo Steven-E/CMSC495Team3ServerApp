@@ -11,19 +11,17 @@ namespace CMSC495Team3ServerApp
 {
     public class ServerAppWorker : IServerAppWorker
     {
-        public CancellationTokenSource CancellationTokenSource { get; }
-
         private readonly IConfigProvider config;
-
-        private readonly ILogger log;
 
         private readonly HttpListener httpListener;
 
-        private readonly SemaphoreSlim requestSemaphoreSlim;
+        private readonly ILogger log;
 
         private readonly IRequestHandlerFactory requestHandlerFactory;
 
         private readonly QueueProcessor<HttpListenerContext> requestQueue;
+
+        private readonly SemaphoreSlim requestSemaphoreSlim;
 
 
         public ServerAppWorker(ILogger log, IConfigProvider config, IRequestHandlerFactory requestHandlerFactory)
@@ -42,9 +40,60 @@ namespace CMSC495Team3ServerApp
             //TODO: Come back and add this to the configprovider
             requestSemaphoreSlim = new SemaphoreSlim(20, 20);
 
-            requestQueue = new QueueProcessor<HttpListenerContext>(RequestProcessor, 
-                CancellationTokenSource.Token, 
+            requestQueue = new QueueProcessor<HttpListenerContext>(RequestProcessor,
+                CancellationTokenSource.Token,
                 int.MaxValue);
+        }
+
+        public CancellationTokenSource CancellationTokenSource { get; }
+
+
+        public Task Start()
+        {
+            log.Info("Run Called");
+
+            Task.Run(() => StartHttpListener());
+            //Task.Run(() => GetStop());
+
+            return Task.Run(() =>
+            {
+                //StartHttpListener();
+                GetStop();
+            });
+        }
+
+        private void GetStop()
+        {
+            while (!CancellationTokenSource.Token.WaitHandle.WaitOne(1))
+            {
+                var input = Console.ReadKey();
+
+                if (input.Key == ConsoleKey.Escape || CancellationTokenSource.IsCancellationRequested)
+                {
+                    CancellationTokenSource.Cancel(false);
+                    return;
+                }
+            }
+
+            Stop();
+        }
+
+        public void Stop()
+        {
+            log.Debug("Shutting down.");
+
+            //if(!CancellationTokenSource.IsCancellationRequested)
+            //    CancellationTokenSource.Cancel();
+
+            try
+            {
+                httpListener.Stop();
+                httpListener.Close();
+            }
+            catch (Exception)
+            {
+                //ignored
+            }
         }
 
         private void RequestProcessor(HttpListenerContext context)
@@ -63,9 +112,7 @@ namespace CMSC495Team3ServerApp
                 var absolutePath = context.Request.Url.AbsolutePath;
 
                 if (context.Request.Url.Segments.Length > 2)
-                {
                     absolutePath = context.Request.Url.Segments[0] + context.Request.Url.Segments[1];
-                }
 
                 //TODO: this...
                 requestHandlerFactory.Get(absolutePath).Handle(context);
@@ -108,10 +155,7 @@ namespace CMSC495Team3ServerApp
                 }
                 catch (HttpListenerException e)
                 {
-                    if (e.ErrorCode != 995)
-                    {
-                        throw;
-                    }
+                    if (e.ErrorCode != 995) throw;
 
                     log.Info($"Catching HttpListenerException, ErrorCode: {e.ErrorCode}, Message: {e.Message}");
 
@@ -121,32 +165,5 @@ namespace CMSC495Team3ServerApp
                 requestQueue.Add(receivedContent);
             }
         }
-
-
-        public Task Start()
-        {
-            log.Info("Run Called");
-
-            return Task.Run(() => StartHttpListener());
-        }
-
-        public void Stop()
-        {
-            log.Debug($"Shutting down.");
-
-            CancellationTokenSource.Cancel();
-
-            try
-            {
-                httpListener.Stop();
-                httpListener.Close();
-            }
-            catch (Exception)
-            {
-                //ignored
-            }
-        }
-
-
     }
 }
