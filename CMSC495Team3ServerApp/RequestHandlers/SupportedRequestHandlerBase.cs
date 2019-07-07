@@ -18,6 +18,11 @@ namespace CMSC495Team3ServerApp.RequestHandlers
         protected readonly IErrorResponseFactory ErrorResponse;
         protected readonly ILogger Log;
 
+        protected List<RestDoc> EndpointDocumentation = new List<RestDoc>();
+
+        protected Dictionary<HttpMethod, Action<HttpListenerContext, string[]>> SupportedActions =
+            new Dictionary<HttpMethod, Action<HttpListenerContext, string[]>>();
+
         protected SupportedRequestHandlerBase(ILogger log, IConfigProvider config,
             IErrorResponseFactory errorResponseFactory) //, ISessionManager sessionManager)
         {
@@ -29,14 +34,6 @@ namespace CMSC495Team3ServerApp.RequestHandlers
 
             //SessionManager = sessionManager;
         }
-
-        protected abstract Dictionary<HttpMethod, Action<HttpListenerContext, string[]>> SupportedActions { get; }
-
-        protected List<RestDoc> EndpointDocumentation = new List<RestDoc>();
-
-        //protected readonly string ConnectionString;
-
-
         //protected readonly ISessionManager SessionManager;
 
         public abstract string UrlSegment { get; }
@@ -44,7 +41,7 @@ namespace CMSC495Team3ServerApp.RequestHandlers
         public void Handle(HttpListenerContext httpListenerContext)
         {
             Log.Info($"Received '{httpListenerContext.Request.HttpMethod}' from client - " +
-                     $"{httpListenerContext.Request.RemoteEndPoint.Address}:{httpListenerContext.Request.RemoteEndPoint.Port}");
+                     $"{httpListenerContext.Request.RemoteEndPoint.Address}:{httpListenerContext.Request.RemoteEndPoint.Port} for '{httpListenerContext.Request.Url.AbsolutePath}'");
 
             var requestMethodType = new HttpMethod(httpListenerContext.Request.HttpMethod);
 
@@ -57,11 +54,10 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             ProcessRequest(httpListenerContext, requestMethodType);
         }
 
-        //protected abstract void ProcessRequest(HttpListenerContext httpListenerContext, HttpMethod method);
         protected virtual void ProcessRequest(HttpListenerContext httpListenerContext, HttpMethod method)
         {
             var route = httpListenerContext.Request.Url.AbsolutePath.Remove(0, UrlSegment.Length)
-                .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                .Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
 
             SupportedActions[method](httpListenerContext, route);
         }
@@ -110,6 +106,13 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             }
 
             return requestText;
+        }
+
+        protected void SendBadRequest(HttpListenerContext context)
+        {
+            ErrorResponse
+                .Get(HttpStatusCode.BadRequest)
+                .Handle(context);
         }
 
         //protected bool IsAuthorized(HttpListenerContext httpListenerContext, out string bearerToken)

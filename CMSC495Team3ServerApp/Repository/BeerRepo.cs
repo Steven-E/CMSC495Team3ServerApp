@@ -182,6 +182,36 @@ namespace CMSC495Team3ServerApp.Repository
             return retVal;
         }
 
+        public TransactionResult<ICollection<Beer>> FindByName(string name)
+        {
+            const string sql = "SELECT * FROM Beer WHERE BeerName LIKE '%@name%';";
+
+            var retVal = new TransactionResult<ICollection<Beer>>();
+
+            try
+            {
+                using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
+                {
+                    connection.Open();
+                    retVal.Data = connection.Query<Beer>(sql, new
+                    {
+                        name
+                    }).ToList();
+
+                    retVal.Success = true;
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Could not perform FIND using BeerName - '{name}'", e);
+
+                retVal.Success = false;
+                retVal.Details = e.Message;
+            }
+
+            return retVal;
+        }
+
         public TransactionResult<ICollection<Beer>> FindByBreweryId(int breweryId)
         {
             const string sql = "SELECT * FROM  Beer WHERE Brewery_FK = @BreweryId";
@@ -227,6 +257,8 @@ namespace CMSC495Team3ServerApp.Repository
         TransactionResult<Beer> FindById(int id);
 
         TransactionResult<Beer> FindUntappdId(int id);
+
+        TransactionResult<ICollection<Beer>> FindByName(string name);
 
         TransactionResult<ICollection<Beer>> FindByBreweryId(int breweryId);
     }

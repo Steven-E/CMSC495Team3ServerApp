@@ -71,6 +71,9 @@
     <Compile Include="Adapters\AppToUntappdAdapter.cs" />
     <Compile Include="Adapters\BreweryDbToAppAdapter.cs" />
     <Compile Include="Adapters\UntappdToAppAdapter.cs" />
+    <Compile Include="ApiClients\RequestWrapper.cs" />
+    <Compile Include="ApiClients\ResponseWrapper.cs" />
+    <Compile Include="ApiClients\UntappdApiManager.cs" />
     <Compile Include="IServerAppWorker.cs" />
     <Compile Include="Logging\ILogger.cs" />
     <Compile Include="Logging\Logger.cs" />
@@ -83,9 +86,11 @@
     <Compile Include="Models\RestDoc.cs" />
     <Compile Include="Models\Untappd\Beer.cs" />
     <Compile Include="Models\Untappd\Brewery.cs" />
+    <Compile Include="Models\Untappd\Checkins.cs" />
     <Compile Include="Models\Untappd\Contact.cs" />
     <Compile Include="Models\Untappd\Location.cs" />
-    <Compile Include="Models\Untappd\UserInfo.cs" />
+    <Compile Include="Models\Untappd\UntappdAuthResponse.cs" />
+    <Compile Include="Models\Untappd\User.cs" />
     <Compile Include="Module\ServerAppModule.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -104,12 +109,16 @@
     <Compile Include="RequestHandlers\ErrorResponseHandlerBase.cs" />
     <Compile Include="RequestHandlers\IErrorResponseHandler.cs" />
     <Compile Include="RequestHandlers\ISupportedRequestHandler.cs" />
+    <Compile Include="RequestHandlers\RobotHandler.cs" />
     <Compile Include="RequestHandlers\SupportedRequestHandlerBase.cs" />
     <Compile Include="RequestHandlers\RequestHandlerFactory.cs" />
     <Compile Include="RequestHandlers\ReviewHandler.cs" />
-    <Compile Include="RequestHandlers\SearchHandler.cs" />
+    <Compile Include="RequestHandlers\UpdateHandler.cs" />
+    <Compile Include="RequestHandlers\UntappdApiCallBackHandler.cs" />
     <Compile Include="RequestHandlers\UserHandler.cs" />
     <Compile Include="ServerAppWorker.cs" />
+    <Compile Include="ApiClients\IApiClient.cs" />
+    <Compile Include="ApiClients\UntappdApiClient.cs" />
     <Compile Include="UtilityClasses\QueueProcessor.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -119,6 +128,5 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

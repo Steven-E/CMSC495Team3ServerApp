@@ -1,4 +1,6 @@
-﻿namespace CMSC495Team3ServerApp.Models.Untappd
+﻿using Newtonsoft.Json;
+
+namespace CMSC495Team3ServerApp.Models.Untappd
 {
     public class User
     {
@@ -23,5 +25,8 @@
 
         //public Stats stats { get; set; }
         public string date_joined { get; set; }
+
+        [JsonProperty("checkins")]
+        public Checkins Checkins { get; set; }
     }
 }

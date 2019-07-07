@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.IO;
+using System.Net;
 using System.Text;
 using CMSC495Team3ServerApp.Logging;
 using CMSC495Team3ServerApp.Provider;
@@ -24,15 +25,10 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             Handle(httpListenerContext, Description);
         }
 
-        public void Handle(HttpListenerContext httpListenerContext, string details)
+        public virtual void Handle(HttpListenerContext httpListenerContext, string details)
         {
             var response = httpListenerContext.Response;
             response.StatusCode = (int) StatusCode;
-            //response.StatusDescription = details;
-
-            //var outputStream = httpListenerContext.Response.OutputStream;
-
-            //outputStream.Close();
 
             var responseBinary = Encoding.UTF8.GetBytes(details);
 
@@ -43,6 +39,19 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             response.ContentLength64 = responseBinary.Length;
             response.OutputStream.Write(responseBinary, 0, responseBinary.Length);
             response.OutputStream.Close();
+        }
+
+        protected string ReadJsonContent(HttpListenerContext httpListenerContext)
+        {
+            string requestText;
+
+            using (var reader = new StreamReader(httpListenerContext.Request.InputStream,
+                httpListenerContext.Request.ContentEncoding))
+            {
+                requestText = reader.ReadToEnd();
+            }
+
+            return requestText;
         }
     }
 
@@ -88,5 +97,18 @@ namespace CMSC495Team3ServerApp.RequestHandlers
 
         protected override string Description => "Requested resource does not exist or cannot be found.";
         public override HttpStatusCode StatusCode => HttpStatusCode.NotFound;
+
+        public override void Handle(HttpListenerContext context, string details)
+        {
+            var request = context.Request;
+            var rawUrl = request.RawUrl;
+            var client = request.RemoteEndPoint;
+            var content = ReadJsonContent(context);
+
+            Log.Warn($"Received '{request.HttpMethod}' for URL '{rawUrl}' from client - " +
+            $"{client.Address}:{client.Port}, and content - '{content}'");
+
+            base.Handle(context, details);
+        }
     }
 }

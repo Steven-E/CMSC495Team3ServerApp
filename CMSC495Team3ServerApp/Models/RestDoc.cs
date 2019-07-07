@@ -24,8 +24,12 @@ namespace CMSC495Team3ServerApp.Models
             OutputType = outputType;
 
             var generator = new JsonSchemaGenerator();
-            var schema = generator.Generate(objectType);
-            JsonSchema = new JRaw(schema.ToString());
+            //JsonSchema schema;
+            //if (objectType != null)
+            //    schema = generator.Generate(objectType);
+
+            if(objectType != null)
+                JsonSchema = new JRaw(generator.Generate(objectType).ToString());
                 
             //schema.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
         }

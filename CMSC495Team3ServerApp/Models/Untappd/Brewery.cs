@@ -1,4 +1,6 @@
-﻿namespace CMSC495Team3ServerApp.Models.Untappd
+﻿using Newtonsoft.Json;
+
+namespace CMSC495Team3ServerApp.Models.Untappd
 {
     public class Brewery
     {
@@ -18,6 +20,10 @@
 
         //public Rating rating { get; set; }
         public string brewery_description { get; set; }
+        
+        //[JsonProperty("beer_list")]
+        //public dynamic BeerList { get; set; }
         //public BeerList beer_list { get; set; }
     }
+
 }

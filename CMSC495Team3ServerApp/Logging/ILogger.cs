@@ -9,6 +9,12 @@ namespace CMSC495Team3ServerApp.Logging
 
         void Info(string content, [CallerFilePath] string callerName = "", [CallerMemberName] string memberName = "");
 
+        void Warn(string content, [CallerFilePath] string callerName = "", [CallerMemberName] string memberName = "");
+
+        void Warn(string content, Exception exception, [CallerFilePath] string callerName = "",
+            [CallerMemberName] string memberName = "");
+
+
         void Error(string content, [CallerFilePath] string callerName = "", [CallerMemberName] string memberName = "");
 
         void Error(string content, Exception exception, [CallerFilePath] string callerName = "",

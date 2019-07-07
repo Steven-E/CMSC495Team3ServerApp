@@ -31,8 +31,6 @@ namespace CMSC495Team3ServerApp.RequestHandlers
         {
             if (requestHandlerMap.ContainsKey(urlSegment)) return requestHandlerMap[urlSegment];
 
-            log.Error($"No handler exists for {urlSegment}");
-
             return errorResponseFactory.Get(HttpStatusCode.NotFound);
         }
     }

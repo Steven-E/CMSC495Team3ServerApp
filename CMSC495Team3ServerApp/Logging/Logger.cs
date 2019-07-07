@@ -66,6 +66,24 @@ namespace CMSC495Team3ServerApp.Logging
             queueProcessor.Add(logStatement);
         }
 
+        public void Warn(string content, [CallerFilePath] string callerName = "",
+            [CallerMemberName] string memberName = "")
+        {
+            var logStatement =
+                $"{DateTime.UtcNow:O}[WARN]{Path.GetFileNameWithoutExtension(callerName)}.{memberName}|{content}\n";
+
+            queueProcessor.Add(logStatement);
+        }
+
+        public void Warn(string content, Exception exception, [CallerFilePath] string callerName = "",
+            [CallerMemberName] string memberName = "")
+        {
+            var logStatement =
+                $"{DateTime.UtcNow:O}[WARN]{Path.GetFileNameWithoutExtension(callerName)}.{memberName}|{content}{exception}\n";
+
+            queueProcessor.Add(logStatement);
+        }
+
         public void Error(string content, [CallerFilePath] string callerName = "",
             [CallerMemberName] string memberName = "")
         {

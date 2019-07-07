@@ -16,6 +16,7 @@ namespace CMSC495Team3ServerApp.Provider
         private readonly ILogger log;
 
         private readonly List<ArgumentException> ValidationErrors;
+        private readonly NameValueCollection configSection;
 
         public ConfigProvider(ILogger log)
         {
@@ -25,6 +26,9 @@ namespace CMSC495Team3ServerApp.Provider
             log.Info("====================================================");
             log.Info("Reading and setting application configurations");
             log.Info("====================================================");
+
+            configSection =
+                (NameValueCollection)ConfigurationManager.GetSection("serverSettings");
 
             GetEnvironmentVariables();
 
@@ -44,21 +48,36 @@ namespace CMSC495Team3ServerApp.Provider
 
         public string ExposedHttpUrl { get; private set; }
 
+        //public string PublicAddressBase { get; private set; }
+
+        public string UntappdApiUrlBase { get; private set; }
+
+        public string UntappdAppClientId { get; private set; }
+
+        public string UntappdAppClientSecret { get; private set; }
+
+        //public string UntappdClientCallBackRoute => "api/Untappd/CallBack";
+
+        //public string UntappdOAuthAppAuthenticationRoute { get; private set; }
+
         private void GetEnvironmentVariables()
         {
             ExposedHttpUrl = GetConfiguration<string>("ExposedHttpUrl");
-
             DatabaseConnectionString = GetConfiguration<string>("DatabaseConnectionString");
-
+            //PublicAddressBase = GetConfiguration<string>("PublicAddressBase");
+            UntappdApiUrlBase = GetConfiguration<string>("UntappdApiUrlBase");
+            UntappdAppClientId = GetConfiguration<string>("UntappdAppClientId");
+            UntappdAppClientSecret = GetConfiguration<string>("UntappdAppClientSecret");
+            //UntappdClientCallBackUrl = GetConfiguration<string>("UntappdClientCallBackUrl");
+            //UntappdOAuthAppAuthenticationRoute = GetConfiguration<string>("UntappdOAuthAppAuthenticationRoute");
             //LocalRootFilePath = GetConfiguration<string>("LocalRootFilePath");
-
             //SessionDurationInMins = GetConfiguration<int>("SessionDurationInMins");
         }
 
         private T GetConfiguration<T>(string keyName) where T : IConvertible
         {
-            var configSection =
-                (NameValueCollection) ConfigurationManager.GetSection("serverSettings");
+            //var configSection =
+            //    (NameValueCollection) ConfigurationManager.GetSection("serverSettings");
 
             var value = configSection.Get(keyName);
 

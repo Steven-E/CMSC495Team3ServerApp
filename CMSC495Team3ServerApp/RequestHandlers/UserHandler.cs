@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using CMSC495Team3ServerApp.Logging;
@@ -21,11 +20,14 @@ namespace CMSC495Team3ServerApp.RequestHandlers
         {
             this.userRepo = userRepo;
 
-            SupportedActions = new Dictionary<HttpMethod, Action<HttpListenerContext, string[]>>();
-
             SupportedActions.Add(HttpMethod.Get, GetAction);
             SupportedActions.Add(HttpMethod.Post, PostAction);
+            
+            SetupDocumentation();
+        }
 
+        private void SetupDocumentation()
+        {
             EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "userId/{ID}", "URL", "UserInfo - JSON Payload",
                 typeof(UserInfo)));
             EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "untappdId/{ID}", "URL",
@@ -42,7 +44,6 @@ namespace CMSC495Team3ServerApp.RequestHandlers
                 "JSON Payload - Updated UserInfo", typeof(UserInfo)));
         }
 
-        protected override Dictionary<HttpMethod, Action<HttpListenerContext, string[]>> SupportedActions { get; }
         public override string UrlSegment => "/user/";
 
         private void GetAction(HttpListenerContext httpListenerContext, string[] route)
@@ -88,17 +89,18 @@ namespace CMSC495Team3ServerApp.RequestHandlers
                     e is OverflowException)
                     ErrorResponse.Get(HttpStatusCode.BadRequest).Handle(httpListenerContext, "Badly formed Id");
                 else
-                    ErrorResponse.Get(HttpStatusCode.InternalServerError).Handle(httpListenerContext, e.Message);
+                    ErrorResponse.Get(HttpStatusCode.InternalServerError).Handle(httpListenerContext, $"Route - '{string.Join("/", route)}'");
             }
         }
 
         private void PostAction(HttpListenerContext httpListenerContext, string[] route)
         {
+            string json;
             UserInfo user;
 
             try
             {
-                var json = ReadJsonContent(httpListenerContext);
+                json = ReadJsonContent(httpListenerContext);
 
                 user = JsonConvert.DeserializeObject<UserInfo>(json);
             }
@@ -128,9 +130,11 @@ namespace CMSC495Team3ServerApp.RequestHandlers
                         break;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                ErrorResponse.Get(HttpStatusCode.InternalServerError).Handle(httpListenerContext, e.Message);
+                ErrorResponse.Get(HttpStatusCode.InternalServerError).Handle(httpListenerContext,
+                    $"Route - '{string.Join("/", route)}'," +
+                    $" Content - '{json}'");
             }
         }
     }

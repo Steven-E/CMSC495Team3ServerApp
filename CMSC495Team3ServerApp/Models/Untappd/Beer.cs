@@ -5,7 +5,7 @@
         public int bid { get; set; }
         public string beer_name { get; set; }
         public string beer_label { get; set; }
-        public double beer_abv { get; set; }
+        public float beer_abv { get; set; }
         public int beer_ibu { get; set; }
         public string beer_description { get; set; }
         public string beer_style { get; set; }

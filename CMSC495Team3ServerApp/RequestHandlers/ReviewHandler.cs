@@ -20,21 +20,24 @@ namespace CMSC495Team3ServerApp.RequestHandlers
         {
             this.beerRankingRepo = beerRankingRepo;
 
-            SupportedActions = new Dictionary<HttpMethod, Action<HttpListenerContext, string[]>>();
-
             SupportedActions.Add(HttpMethod.Get, GetAction);
             SupportedActions.Add(HttpMethod.Post, PostAction);
 
+            SetupDocumentation();
+        }
+
+        public override string UrlSegment => "/reviews/";
+
+        private void SetupDocumentation()
+        {
             EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "userId/{ID}", "URL",
                 "Review Collection - JSON payload", typeof(ICollection<UserBeerRanking>)));
             EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "userId/{USERID}/beerId/{BEERID}", "URL",
                 "Review Collection - JSON payload", typeof(UserBeerRanking)));
-
             EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "beerId/{ID}", "URL", "Review Collection - Json",
                 typeof(ICollection<UserBeerRanking>)));
             EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "beerId/{BEERID}/userId/{USERID}", "URL",
                 "Review Collection - JSON payload", typeof(UserBeerRanking)));
-
             EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "untappdId/{ID}", "URL",
                 "Review Collection - JSON payload", typeof(ICollection<UserBeerRanking>)));
 
@@ -46,13 +49,6 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             EndpointDocumentation.Add(new RestDoc("POST", UrlSegment + "update/", "JSON payload",
                 "Updated Review - JSON payload", typeof(UserBeerRanking)));
         }
-
-        protected sealed override Dictionary<HttpMethod, Action<HttpListenerContext, string[]>> SupportedActions
-        {
-            get;
-        }
-
-        public override string UrlSegment => "/reviews/";
 
         private void GetAction(HttpListenerContext httpListenerContext, string[] route)
         {
@@ -110,10 +106,11 @@ namespace CMSC495Team3ServerApp.RequestHandlers
 
         private void PostAction(HttpListenerContext httpListenerContext, string[] route)
         {
+            string json;
             UserBeerRanking ranking;
             try
             {
-                var json = ReadJsonContent(httpListenerContext);
+                json = ReadJsonContent(httpListenerContext);
 
                 ranking = JsonConvert.DeserializeObject<UserBeerRanking>(json);
             }
@@ -143,9 +140,11 @@ namespace CMSC495Team3ServerApp.RequestHandlers
                         break;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                ErrorResponse.Get(HttpStatusCode.InternalServerError).Handle(httpListenerContext, e.Message);
+                ErrorResponse.Get(HttpStatusCode.InternalServerError).Handle(httpListenerContext,
+                    $"Route - '{string.Join("/", route)}'," +
+                    $" Content - '{json}'");
             }
         }
     }
