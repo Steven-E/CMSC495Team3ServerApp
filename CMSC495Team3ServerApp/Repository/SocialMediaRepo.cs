@@ -27,11 +27,11 @@ namespace CMSC495Team3ServerApp.Repository
                 {
                     connection.Open();
                     connection.Query(sql, new
-                    {
-                        Vender = appObj.Vendor,
-                        appObj.BaseUrl,
-                        appObj.ApiUrl
-                    });
+                                          {
+                                              Vender = appObj.Vendor,
+                                              appObj.BaseUrl,
+                                              appObj.ApiUrl
+                                          });
                 }
             }
             catch (Exception e)
@@ -53,9 +53,9 @@ namespace CMSC495Team3ServerApp.Repository
                 {
                     connection.Open();
                     retVal.Data = connection.Query<SocialMedia>(sql, new
-                    {
-                        VendorId = vendorId
-                    }).FirstOrDefault();
+                                                                     {
+                                                                         VendorId = vendorId
+                                                                     }).FirstOrDefault();
 
                     retVal.Success = true;
                 }

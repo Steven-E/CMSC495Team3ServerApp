@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using CMSC495Team3ServerApp.ApiClients;
@@ -12,10 +11,11 @@ namespace CMSC495Team3ServerApp.RequestHandlers
     {
         private readonly IUntappdApiClient client;
 
-        public UpdateHandler(ILogger log, IConfigProvider config, IErrorResponseFactory errorResponseFactory, IUntappdApiClient client) : base(log,
+        public UpdateHandler(ILogger log, IConfigProvider config,
+            IErrorResponseFactory errorResponseFactory,
+            IUntappdApiClient client) : base(log,
             config, errorResponseFactory)
         {
-
             this.client = client;
 
             SupportedActions.Add(HttpMethod.Get, GetAction);
@@ -31,32 +31,35 @@ namespace CMSC495Team3ServerApp.RequestHandlers
                 {
                     ErrorResponse
                         .Get(HttpStatusCode.BadRequest)
-                        .Handle(context, $"Bad Request - No '/beer/{route[0]}/...' exists");
+                        .Handle(context,
+                            $"Bad Request - No '/beer/{route[0]}/...' exists");
                     return;
                 }
 
                 switch (route[1])
                 {
                     case "update":
-                        
                         break;
+                    //TODO: Test Case for development
                     case "getMe":
                         var request = new RequestWrapper();
                         request.HttpMethod = HttpMethod.Get;
                         request.RelativePath = "user/info/steven-etienne";
-                        
+
                         SendResponse(context, client.Get(request));
                         break;
                     default:
                         ErrorResponse
                             .Get(HttpStatusCode.BadRequest)
-                            .Handle(context, $"Bad Request - No '/test failure/{route[0]}/...' exists");
+                            .Handle(context,
+                                $"Bad Request - No '/test failure/{route[0]}/...' exists");
                         break;
                 }
             }
             catch (Exception e)
             {
-                ErrorResponse.Get(HttpStatusCode.InternalServerError).Handle(context, e.Message);
+                ErrorResponse.Get(HttpStatusCode.InternalServerError)
+                             .Handle(context, e.Message);
             }
         }
     }

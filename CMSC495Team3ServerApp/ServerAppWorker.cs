@@ -17,20 +17,23 @@ namespace CMSC495Team3ServerApp
 
         private readonly ILogger log;
 
-        private readonly ISupportedRequestHandlerFactory supportedRequestHandlerFactory;
-
         private readonly QueueProcessor<HttpListenerContext> requestQueue;
 
         private readonly SemaphoreSlim requestSemaphoreSlim;
 
+        private readonly ISupportedRequestHandlerFactory
+            supportedRequestHandlerFactory;
 
-        public ServerAppWorker(ILogger log, IConfigProvider config, ISupportedRequestHandlerFactory supportedRequestHandlerFactory)
+
+        public ServerAppWorker(ILogger log, IConfigProvider config,
+            ISupportedRequestHandlerFactory supportedRequestHandlerFactory)
         {
             CancellationTokenSource = new CancellationTokenSource();
 
             this.config = config;
             this.log = log;
-            this.supportedRequestHandlerFactory = supportedRequestHandlerFactory;
+            this.supportedRequestHandlerFactory =
+                supportedRequestHandlerFactory;
 
 
             httpListener = new HttpListener();
@@ -40,7 +43,8 @@ namespace CMSC495Team3ServerApp
             //TODO: Come back and add this to the configprovider
             requestSemaphoreSlim = new SemaphoreSlim(20, 20);
 
-            requestQueue = new QueueProcessor<HttpListenerContext>(RequestProcessor,
+            requestQueue = new QueueProcessor<HttpListenerContext>(
+                RequestProcessor,
                 CancellationTokenSource.Token,
                 int.MaxValue);
         }
@@ -53,37 +57,13 @@ namespace CMSC495Team3ServerApp
             log.Info("Run Called");
 
             Task.Run(() => StartHttpListener());
-            //Task.Run(() => GetStop());
 
-            return Task.Run(() =>
-            {
-                //StartHttpListener();
-                GetStop();
-            });
-        }
-
-        private void GetStop()
-        {
-            while (!CancellationTokenSource.Token.WaitHandle.WaitOne(1))
-            {
-                var input = Console.ReadKey();
-
-                if (input.Key == ConsoleKey.Escape || CancellationTokenSource.IsCancellationRequested)
-                {
-                    CancellationTokenSource.Cancel(false);
-                    return;
-                }
-            }
-
-            Stop();
+            return Task.Run(() => { GetStop(); });
         }
 
         public void Stop()
         {
             log.Debug("Shutting down.");
-
-            //if(!CancellationTokenSource.IsCancellationRequested)
-            //    CancellationTokenSource.Cancel();
 
             try
             {
@@ -96,12 +76,31 @@ namespace CMSC495Team3ServerApp
             }
         }
 
+        private void GetStop()
+        {
+            while (!CancellationTokenSource.Token.WaitHandle.WaitOne(1))
+            {
+                var input = Console.ReadKey();
+
+                if (input.Key == ConsoleKey.Escape ||
+                    CancellationTokenSource.IsCancellationRequested)
+                {
+                    CancellationTokenSource.Cancel(false);
+                    return;
+                }
+            }
+
+            Stop();
+        }
+
         private void RequestProcessor(HttpListenerContext context)
         {
             requestSemaphoreSlim.Wait();
 
-            Task.Run(() => { RequestThreadEntry(context); }, CancellationTokenSource.Token)
-                .ContinueWith(x => { requestSemaphoreSlim.Release(); }, CancellationTokenSource.Token)
+            Task.Run(() => { RequestThreadEntry(context); },
+                    CancellationTokenSource.Token)
+                .ContinueWith(x => { requestSemaphoreSlim.Release(); },
+                    CancellationTokenSource.Token)
                 .ConfigureAwait(false);
         }
 
@@ -112,10 +111,12 @@ namespace CMSC495Team3ServerApp
                 var absolutePath = context.Request.Url.AbsolutePath;
 
                 if (context.Request.Url.Segments.Length > 2)
-                    absolutePath = context.Request.Url.Segments[0] + context.Request.Url.Segments[1];
+                    absolutePath = context.Request.Url.Segments[0] +
+                                   context.Request.Url.Segments[1];
 
                 //TODO: this...
-                supportedRequestHandlerFactory.Get(absolutePath).Handle(context);
+                supportedRequestHandlerFactory
+                    .Get(absolutePath).Handle(context);
             }
             catch (Exception e)
             {
@@ -157,7 +158,8 @@ namespace CMSC495Team3ServerApp
                 {
                     if (e.ErrorCode != 995) throw;
 
-                    log.Info($"Catching HttpListenerException, ErrorCode: {e.ErrorCode}, Message: {e.Message}");
+                    log.Info(
+                        $"Catching HttpListenerException, ErrorCode: {e.ErrorCode}, Message: {e.Message}");
 
                     continue;
                 }

@@ -3,7 +3,6 @@ using CMSC495Team3ServerApp.Logging;
 using CMSC495Team3ServerApp.Provider;
 using CMSC495Team3ServerApp.Repository;
 using CMSC495Team3ServerApp.RequestHandlers;
-using Ninject;
 using Ninject.Extensions.Conventions;
 using Ninject.Modules;
 
@@ -38,41 +37,21 @@ namespace CMSC495Team3ServerApp.Module
             Kernel.Bind(x =>
             {
                 x.FromThisAssembly()
-                    .SelectAllClasses()
-                    .InheritedFrom<IErrorResponseHandler>()
-                    .BindAllInterfaces()
-                    .Configure(b => { b.InSingletonScope(); });
+                 .SelectAllClasses()
+                 .InheritedFrom<IErrorResponseHandler>()
+                 .BindAllInterfaces()
+                 .Configure(b => { b.InSingletonScope(); });
             });
 
             Kernel.Bind(
                 x =>
                 {
                     x.FromThisAssembly()
-                        .SelectAllClasses()
-                        .InheritedFrom<ISupportedRequestHandler>()
-                        .BindAllInterfaces()
-                        .Configure(b => { b.InSingletonScope(); });
+                     .SelectAllClasses()
+                     .InheritedFrom<ISupportedRequestHandler>()
+                     .BindAllInterfaces()
+                     .Configure(b => { b.InSingletonScope(); });
                 });
-
-            
-
-
-
-
-            //var temp = Kernel.Get<ISupportedRequestHandlerFactory>().Get(/"api/")
-            //var temp = Kernel.Get<IServerAppWorker>().CancellationTokenSource;
-
-            ////var cts = Kernel.Get<IServerAppWorker>().CancellationTokenSource;
-            ////this.Kernel.
-                
-            //    //this.KernelInstance.Get<IServerAppWorker>().CancellationTokenSource;
-
-            ////var api = Kernel.Get<ISupportedRequestHandlerFactory>().Get("api/");
-            //var api = this.KernelInstance.Get<ISupportedRequestHandlerFactory>().Get("api/");
-
-            //Bind<IUntappdApiClient>().To<UntappdApiClient>()
-            //    .WithConstructorArgument("cancellationTokenSource", cts)
-            //    .WithConstructorArgument("restHandler", api);
         }
     }
 }

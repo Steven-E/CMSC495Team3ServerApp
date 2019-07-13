@@ -27,7 +27,8 @@ namespace CMSC495Team3ServerApp.Models.App
         //TODO: consider changing this to a locally cached image path
         public string LabelUrl { get; set; }
 
-        [JsonProperty("BreweryId")] public int Brewery_FK { get; set; }
+        [JsonProperty("BreweryId")]
+        public int Brewery_FK { get; set; }
 
         //[JsonIgnore]
         //public int Brewery_FK { get; set; }

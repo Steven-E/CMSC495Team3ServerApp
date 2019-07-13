@@ -57,7 +57,7 @@ namespace CMSC495Team3ServerApp.RequestHandlers
         protected virtual void ProcessRequest(HttpListenerContext httpListenerContext, HttpMethod method)
         {
             var route = httpListenerContext.Request.Url.AbsolutePath.Remove(0, UrlSegment.Length)
-                .Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
+                                           .Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
 
             SupportedActions[method](httpListenerContext, route);
         }

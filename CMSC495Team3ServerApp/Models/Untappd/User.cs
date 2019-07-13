@@ -20,10 +20,7 @@ namespace CMSC495Team3ServerApp.Models.Untappd
         public int is_supporter { get; set; }
         public string relationship { get; set; }
         public string untappd_url { get; set; }
-
         public string account_type { get; set; }
-
-        //public Stats stats { get; set; }
         public string date_joined { get; set; }
 
         [JsonProperty("checkins")]

@@ -33,29 +33,23 @@ namespace CMSC495Team3ServerApp.Repository
 
             try
             {
-                //int breweryId = -1;
-
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    retVal.Data.BreweryId = connection.Query<int>(sql, new
-                    {
-                        BreweryName = appObj.BreweryName,
-                        Address = appObj.Address,
-                        Phone = appObj.Phone,
-                        UntappdId = appObj.UntappdId,
-                        BreweryDbId = appObj.BreweryDbId,
-                        LabelUrl  = appObj.LabelUrl,
-                        OrgType = appObj.OrgType
-                    }).Single();
+                    retVal.Data.BreweryId = connection.Query<int>(sql,
+                        new
+                        {
+                            appObj.BreweryName,
+                            appObj.Address,
+                            appObj.Phone,
+                            appObj.UntappdId,
+                            appObj.BreweryDbId,
+                            appObj.LabelUrl,
+                            appObj.OrgType
+                        }).Single();
                 }
 
-                //if (retVal.Data.Beers.Count > 0)
-                //{
-
-                //}
                 foreach (var beer in retVal.Data.Beers)
-                {
                     if (beer.BeerId < 100)
                     {
                         beer.Brewery_FK = retVal.Data.BreweryId;
@@ -65,12 +59,9 @@ namespace CMSC495Team3ServerApp.Repository
                         if (beerRet.Success)
                             beer.BeerId = beerRet.Data;
                     }
-                }
 
                 retVal.Data = appObj;
                 retVal.Success = true;
-
-
             }
             catch (Exception e)
             {
@@ -85,12 +76,9 @@ namespace CMSC495Team3ServerApp.Repository
 
         public TransactionResult<Brewery> AddOrUpdate(Brewery appObj)
         {
-            if (appObj.BreweryId == 0)
-            {
-                return this.Insert(appObj);
-            }
+            if (appObj.BreweryId == 0) return Insert(appObj);
 
-            return this.Update(appObj);
+            return Update(appObj);
         }
 
         public override TransactionResult<Brewery> Update(Brewery appObj)
@@ -112,21 +100,21 @@ namespace CMSC495Team3ServerApp.Repository
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    connection.Execute(sql, new
-                    {
-                        appObj.BreweryName,
-                        appObj.Address,
-                        appObj.Phone,
-                        appObj.UntappdId,
-                        appObj.BreweryDbId,
-                        appObj.LabelUrl,
-                        appObj.OrgType,
-                        appObj.BreweryId
-                    });
+                    connection.Execute(sql,
+                        new
+                        {
+                            appObj.BreweryName,
+                            appObj.Address,
+                            appObj.Phone,
+                            appObj.UntappdId,
+                            appObj.BreweryDbId,
+                            appObj.LabelUrl,
+                            appObj.OrgType,
+                            appObj.BreweryId
+                        });
                 }
 
                 foreach (var beer in retVal.Data.Beers)
-                {
                     if (beer.BeerId < 100)
                     {
                         beer.Brewery_FK = retVal.Data.BreweryId;
@@ -136,7 +124,6 @@ namespace CMSC495Team3ServerApp.Repository
                         if (beerRet.Success)
                             beer.BeerId = beerRet.Data;
                     }
-                }
 
                 retVal.Data = appObj;
                 retVal.Success = true;
@@ -152,28 +139,6 @@ namespace CMSC495Team3ServerApp.Repository
             return retVal;
         }
 
-        //public TransactionResult<Brewery> FindByBeerId(int beerId)
-        //{
-        //    const string sql = "SELECT * FROM Brewery WHERE " +
-        //                       "BreweryId = @Id";
-
-        //    var retVal = new TransactionResult<Brewery>();
-
-        //    try
-        //    {
-
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Log.Error($"Could not perform FIND using BreweryId - {id}'", e);
-
-        //        retVal.Success = false;
-        //        retVal.Details = e.Message;
-        //    }
-
-        //    return retVal;
-        //}
-
         public TransactionResult<Brewery> FindById(int id, bool getBeers)
         {
             const string sql = "SELECT * FROM Brewery WHERE " +
@@ -186,10 +151,11 @@ namespace CMSC495Team3ServerApp.Repository
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    retVal.Data = connection.Query<Brewery>(sql, new
-                    {
-                        Id = id
-                    }).FirstOrDefault();
+                    retVal.Data = connection.Query<Brewery>(sql,
+                        new
+                        {
+                            Id = id
+                        }).FirstOrDefault();
 
                     if (retVal?.Data != null && getBeers)
                         retVal.Data.Beers = beerRepo.FindByBreweryId(id).Data.ToList();
@@ -220,10 +186,11 @@ namespace CMSC495Team3ServerApp.Repository
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    retVal.Data = connection.Query<Brewery>(sql, new
-                    {
-                        Id = id
-                    }).FirstOrDefault();
+                    retVal.Data = connection.Query<Brewery>(sql,
+                        new
+                        {
+                            Id = id
+                        }).FirstOrDefault();
 
                     if (retVal?.Data != null && getBeers)
                         retVal.Data.Beers = beerRepo.FindByBreweryId(retVal.Data.BreweryId).Data.ToList();
@@ -254,10 +221,11 @@ namespace CMSC495Team3ServerApp.Repository
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    retVal.Data = connection.Query<Brewery>(sql, new
-                    {
-                        Id = id
-                    }).FirstOrDefault();
+                    retVal.Data = connection.Query<Brewery>(sql,
+                        new
+                        {
+                            Id = id
+                        }).FirstOrDefault();
                 }
 
                 if (retVal?.Data != null && getBeers)
@@ -290,17 +258,17 @@ namespace CMSC495Team3ServerApp.Repository
                     retVal.Data = connection.Query<Brewery>(sql).ToList();
                 }
 
-                if(getBeers)
+                if (getBeers)
                     foreach (var brewery in retVal.Data)
-                    {
                         brewery.Beers = beerRepo.FindByBreweryId(brewery.BreweryId).Data.ToList();
-                    }
 
                 retVal.Success = true;
             }
             catch (Exception e)
             {
-                Log.Error($"Ran into an error while trying to retrieve 'All' breweries and {(getBeers ? "associated " : "no ")}beers.", e);
+                Log.Error(
+                    $"Ran into an error while trying to retrieve 'All' breweries and {(getBeers ? "associated " : "no ")}beers.",
+                    e);
 
                 retVal.Success = false;
                 retVal.Details = e.Message;
@@ -322,8 +290,6 @@ namespace CMSC495Team3ServerApp.Repository
         TransactionResult<Brewery> Update(Brewery appObj);
 
         TransactionResult<Brewery> AddOrUpdate(Brewery appObj);
-
-        //TransactionResult<Brewery> FindByBeerId(int beerId);
 
         TransactionResult<Brewery> FindById(int id, bool getBeers);
 

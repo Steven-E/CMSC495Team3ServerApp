@@ -10,26 +10,32 @@ namespace CMSC495Team3ServerApp.RequestHandlers
         IRequestHandler Get(string urlSegment);
     }
 
-    public class SupportedRequestHandlerFactory : ISupportedRequestHandlerFactory
+    public class
+        SupportedRequestHandlerFactory : ISupportedRequestHandlerFactory
     {
+        private readonly IErrorResponseFactory errorResponseFactory;
         private readonly ILogger log;
 
-        private readonly IDictionary<string, ISupportedRequestHandler> requestHandlerMap;
-        private readonly IErrorResponseFactory errorResponseFactory;
+        private readonly IDictionary<string, ISupportedRequestHandler>
+            requestHandlerMap;
 
-        public SupportedRequestHandlerFactory(ILogger log, IEnumerable<ISupportedRequestHandler> handlers, IErrorResponseFactory errorResponseFactory)
+        public SupportedRequestHandlerFactory(ILogger log,
+            IEnumerable<ISupportedRequestHandler> handlers,
+            IErrorResponseFactory errorResponseFactory)
         {
             this.log = log;
 
-            requestHandlerMap = handlers.ToDictionary(handle => handle.UrlSegment, handle => handle);
+            requestHandlerMap =
+                handlers.ToDictionary(handle => handle.UrlSegment,
+                    handle => handle);
 
             this.errorResponseFactory = errorResponseFactory;
-
         }
 
         public IRequestHandler Get(string urlSegment)
         {
-            if (requestHandlerMap.ContainsKey(urlSegment)) return requestHandlerMap[urlSegment];
+            if (requestHandlerMap.ContainsKey(urlSegment))
+                return requestHandlerMap[urlSegment];
 
             return errorResponseFactory.Get(HttpStatusCode.NotFound);
         }

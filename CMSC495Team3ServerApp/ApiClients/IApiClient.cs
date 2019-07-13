@@ -6,23 +6,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using CMSC495Team3ServerApp.Logging;
 using CMSC495Team3ServerApp.Provider;
-using CMSC495Team3ServerApp.UtilityClasses;
 using Newtonsoft.Json;
 
 namespace CMSC495Team3ServerApp.ApiClients
 {
-    //public interface IApiClient
-    //{
-    //}
-
-    public abstract class ApiClientBase // : IApiClient
+    public abstract class ApiClientBase
     {
         private readonly CancellationTokenSource cancellationTokenSource;
 
         protected readonly IConfigProvider Config;
         protected readonly ILogger Log;
-
-        private readonly SemaphoreSlim requestSemaphoreSlim;
 
         protected Dictionary<string, string> DefaultHeaders = new Dictionary<string, string>();
 
@@ -35,7 +28,6 @@ namespace CMSC495Team3ServerApp.ApiClients
 
             this.cancellationTokenSource = cancellationTokenSource;
         }
-        //public abstract TransactionResult<ResponseWrapper> AuthenticateToApi();
 
         public virtual async Task<ResponseWrapper> SendRestRequest(RequestWrapper request)
         {
@@ -68,8 +60,6 @@ namespace CMSC495Team3ServerApp.ApiClients
         protected HttpRequestMessage CreateRequest(RequestWrapper restRequest)
         {
             //Request Uri
-            //var baseUri = new Uri(configs.ServerUrl);
-
             var partialRequestUri = new Uri(restRequest.RelativePath);
 
             var completeRequestUri = AppendQueryParametersToUri(restRequest.QueryParameters, partialRequestUri);

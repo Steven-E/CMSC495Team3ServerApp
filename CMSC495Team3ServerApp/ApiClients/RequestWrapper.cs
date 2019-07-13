@@ -6,6 +6,12 @@ namespace CMSC495Team3ServerApp.ApiClients
 {
     public class RequestWrapper
     {
+        public RequestWrapper()
+        {
+            RequestSpecificHeaders = new Dictionary<string, string>();
+            QueryParameters = new List<KeyValuePair<string, string>>();
+        }
+
         public AuthenticationHeaderValue AuthenticationHeaderValue { get; set; }
 
         public HttpContent HttpContent { get; set; }
@@ -17,11 +23,5 @@ namespace CMSC495Team3ServerApp.ApiClients
         public string RelativePath { get; set; }
 
         public Dictionary<string, string> RequestSpecificHeaders { get; set; }
-
-        public RequestWrapper()
-        {
-            RequestSpecificHeaders = new Dictionary<string, string>();
-            QueryParameters = new List<KeyValuePair<string, string>>();
-        }
     }
 }

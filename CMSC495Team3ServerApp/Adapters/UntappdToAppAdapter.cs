@@ -42,8 +42,6 @@ namespace CMSC495Team3ServerApp.Adapters
             retVal.ABV = uObj.beer_abv;
 
             //TODO: fix this
-            //retVal.Brewery_FK
-
 
             return retVal;
         }
@@ -67,11 +65,8 @@ namespace CMSC495Team3ServerApp.Adapters
             retVal.OrgType = uObj.brewery_type;
             retVal.UntappdId = uObj.brewery_id;
             retVal.Beers = new List<Beer>();
-            retVal.Address = $"{uObj.location.brewery_city}, {uObj.location.brewery_state}"; 
+            retVal.Address = $"{uObj.location.brewery_city}, {uObj.location.brewery_state}";
             return retVal;
         }
-
-
-
     }
 }

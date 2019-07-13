@@ -25,7 +25,8 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             Handle(httpListenerContext, Description);
         }
 
-        public virtual void Handle(HttpListenerContext httpListenerContext, string details)
+        public virtual void Handle(HttpListenerContext httpListenerContext,
+            string details)
         {
             var response = httpListenerContext.Response;
             response.StatusCode = (int) StatusCode;
@@ -37,15 +38,18 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             response.StatusCode = (int) StatusCode;
             response.StatusDescription = StatusCode.ToString();
             response.ContentLength64 = responseBinary.Length;
-            response.OutputStream.Write(responseBinary, 0, responseBinary.Length);
+            response.OutputStream.Write(responseBinary, 0,
+                responseBinary.Length);
             response.OutputStream.Close();
         }
 
-        protected string ReadJsonContent(HttpListenerContext httpListenerContext)
+        protected string ReadJsonContent(
+            HttpListenerContext httpListenerContext)
         {
             string requestText;
 
-            using (var reader = new StreamReader(httpListenerContext.Request.InputStream,
+            using (var reader = new StreamReader(
+                httpListenerContext.Request.InputStream,
                 httpListenerContext.Request.ContentEncoding))
             {
                 requestText = reader.ReadToEnd();
@@ -58,29 +62,36 @@ namespace CMSC495Team3ServerApp.RequestHandlers
     //405 Method Not Allowed
     public class MethodNotAllowedHandler : ErrorResponseHandlerBase
     {
-        public MethodNotAllowedHandler(ILogger log, IConfigProvider config) : base(log, config)
+        public MethodNotAllowedHandler(ILogger log, IConfigProvider config) :
+            base(log, config)
         {
         }
 
         protected override string Description => "Method not allowed";
-        public override HttpStatusCode StatusCode => HttpStatusCode.MethodNotAllowed;
+
+        public override HttpStatusCode StatusCode =>
+            HttpStatusCode.MethodNotAllowed;
     }
 
     //500 Internal Server Error
     public class ServerErrorHandler : ErrorResponseHandlerBase
     {
-        public ServerErrorHandler(ILogger log, IConfigProvider config) : base(log, config)
+        public ServerErrorHandler(ILogger log, IConfigProvider config) : base(
+            log, config)
         {
         }
 
         protected override string Description => "Internal Server Error";
-        public override HttpStatusCode StatusCode => HttpStatusCode.InternalServerError;
+
+        public override HttpStatusCode StatusCode =>
+            HttpStatusCode.InternalServerError;
     }
 
     //400 Bad Request
     public class BadRequestHandler : ErrorResponseHandlerBase
     {
-        public BadRequestHandler(ILogger log, IConfigProvider config) : base(log, config)
+        public BadRequestHandler(ILogger log, IConfigProvider config) : base(
+            log, config)
         {
         }
 
@@ -91,11 +102,14 @@ namespace CMSC495Team3ServerApp.RequestHandlers
     //404 Not Found
     public class NotFoundHandler : ErrorResponseHandlerBase
     {
-        public NotFoundHandler(ILogger log, IConfigProvider config) : base(log, config)
+        public NotFoundHandler(ILogger log, IConfigProvider config) : base(log,
+            config)
         {
         }
 
-        protected override string Description => "Requested resource does not exist or cannot be found.";
+        protected override string Description =>
+            "Requested resource does not exist or cannot be found.";
+
         public override HttpStatusCode StatusCode => HttpStatusCode.NotFound;
 
         public override void Handle(HttpListenerContext context, string details)
@@ -105,8 +119,9 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             var client = request.RemoteEndPoint;
             var content = ReadJsonContent(context);
 
-            Log.Warn($"Received '{request.HttpMethod}' for URL '{rawUrl}' from client - " +
-            $"{client.Address}:{client.Port}, and content - '{content}'");
+            Log.Warn(
+                $"Received '{request.HttpMethod}' for URL '{rawUrl}' from client - " +
+                $"{client.Address}:{client.Port}, and content - '{content}'");
 
             base.Handle(context, details);
         }

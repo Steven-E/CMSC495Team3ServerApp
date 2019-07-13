@@ -7,10 +7,10 @@ namespace CMSC495Team3ServerApp.UtilityClasses
 {
     public class QueueProcessor<T>
     {
+        private readonly CancellationToken cancellationToken;
         private readonly BlockingCollection<T> queue;
 
         private readonly Action<T> workAction;
-        private readonly CancellationToken cancellationToken;
 
         public QueueProcessor(Action<T> workAction, CancellationToken cancellationToken, int capacity = 100000)
         {

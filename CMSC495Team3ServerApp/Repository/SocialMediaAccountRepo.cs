@@ -14,7 +14,8 @@ namespace CMSC495Team3ServerApp.Repository
     {
         private readonly ISocialMediaRepo socialMediaVendorRepo;
 
-        public SocialMediaAccountRepo(ILogger logger, IConfigProvider configProvider, ISocialMediaRepo socialMediaVendorRepo) : base(logger, configProvider)
+        public SocialMediaAccountRepo(ILogger logger, IConfigProvider configProvider,
+            ISocialMediaRepo socialMediaVendorRepo) : base(logger, configProvider)
         {
             this.socialMediaVendorRepo = socialMediaVendorRepo;
         }
@@ -31,12 +32,13 @@ namespace CMSC495Team3ServerApp.Repository
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    connection.Execute(sql, new
-                    {
-                        User = userId,
-                        Vender = appObj.Vendor.Vendor,
-                        appObj.AccountId
-                    });
+                    connection.Execute(sql,
+                        new
+                        {
+                            User = userId,
+                            Vender = appObj.Vendor.Vendor,
+                            appObj.AccountId
+                        });
                 }
             }
             catch (Exception e)
@@ -60,12 +62,13 @@ namespace CMSC495Team3ServerApp.Repository
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    connection.Execute(sql, new
-                    {
-                        UserId = userId,
-                        appObj.AccountId,
-                        appObj.Vendor.Vendor
-                    });
+                    connection.Execute(sql,
+                        new
+                        {
+                            UserId = userId,
+                            appObj.AccountId,
+                            appObj.Vendor.Vendor
+                        });
                 }
 
                 retVal.Success = true;
@@ -94,10 +97,11 @@ namespace CMSC495Team3ServerApp.Repository
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    retVal.Data = connection.Query<SocialMediaAccount>(sql, new
-                    {
-                        userId
-                    }).ToList();
+                    retVal.Data = connection.Query<SocialMediaAccount>(sql,
+                        new
+                        {
+                            userId
+                        }).ToList();
                 }
 
                 retVal.Success = true;

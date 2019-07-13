@@ -11,31 +11,30 @@ namespace CMSC495Team3ServerApp.Provider
     public class ConfigProvider : IConfigProvider
     {
         private const string NOT_DEFINED = " was not defined in the environment variables.";
-
         private const string NOT_VALID = " does not have a valid value in the environment variables.";
+
+        private readonly NameValueCollection configSection;
         private readonly ILogger log;
 
         private readonly List<ArgumentException> ValidationErrors;
-        private readonly NameValueCollection configSection;
 
         public ConfigProvider(ILogger log)
         {
             this.log = log;
             ValidationErrors = new List<ArgumentException>();
 
-            log.Info("====================================================");
-            log.Info("Reading and setting application configurations");
-            log.Info("====================================================");
+            this.log.Info("====================================================\n" +
+                          "Reading and setting application configurations\n" +
+                          "====================================================");
 
             configSection =
-                (NameValueCollection)ConfigurationManager.GetSection("serverSettings");
+                (NameValueCollection) ConfigurationManager.GetSection("serverSettings");
 
             GetEnvironmentVariables();
 
-            log.Info("----------------------------------------------------");
-            log.Info("Finished loading configurations");
-            log.Info("----------------------------------------------------");
-
+            this.log.Info("----------------------------------------------------\n" +
+                          "Finished loading configurations\n" +
+                          "----------------------------------------------------");
 
             if (!ValidationErrors.Any()) return;
 
@@ -48,37 +47,23 @@ namespace CMSC495Team3ServerApp.Provider
 
         public string ExposedHttpUrl { get; private set; }
 
-        //public string PublicAddressBase { get; private set; }
-
         public string UntappdApiUrlBase { get; private set; }
 
         public string UntappdAppClientId { get; private set; }
 
         public string UntappdAppClientSecret { get; private set; }
 
-        //public string UntappdClientCallBackRoute => "api/Untappd/CallBack";
-
-        //public string UntappdOAuthAppAuthenticationRoute { get; private set; }
-
         private void GetEnvironmentVariables()
         {
             ExposedHttpUrl = GetConfiguration<string>("ExposedHttpUrl");
             DatabaseConnectionString = GetConfiguration<string>("DatabaseConnectionString");
-            //PublicAddressBase = GetConfiguration<string>("PublicAddressBase");
             UntappdApiUrlBase = GetConfiguration<string>("UntappdApiUrlBase");
             UntappdAppClientId = GetConfiguration<string>("UntappdAppClientId");
             UntappdAppClientSecret = GetConfiguration<string>("UntappdAppClientSecret");
-            //UntappdClientCallBackUrl = GetConfiguration<string>("UntappdClientCallBackUrl");
-            //UntappdOAuthAppAuthenticationRoute = GetConfiguration<string>("UntappdOAuthAppAuthenticationRoute");
-            //LocalRootFilePath = GetConfiguration<string>("LocalRootFilePath");
-            //SessionDurationInMins = GetConfiguration<int>("SessionDurationInMins");
         }
 
         private T GetConfiguration<T>(string keyName) where T : IConvertible
         {
-            //var configSection =
-            //    (NameValueCollection) ConfigurationManager.GetSection("serverSettings");
-
             var value = configSection.Get(keyName);
 
             if (value != null)

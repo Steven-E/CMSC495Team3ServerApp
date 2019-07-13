@@ -35,18 +35,18 @@ namespace CMSC495Team3ServerApp.Repository
                 {
                     connection.Open();
                     retVal.Data = connection.Query<int>(sql, new
-                    {
-                        BreweryId = appObj.Brewery_FK,
-                        appObj.UntappdId,
-                        appObj.BreweryDbId,
-                        appObj.BeerName,
-                        appObj.ABV,
-                        appObj.Description,
-                        appObj.IBU,
-                        appObj.Style,
-                        appObj.ShortStyle,
-                        appObj.LabelUrl
-                    }).Single();
+                                                             {
+                                                                 BreweryId = appObj.Brewery_FK,
+                                                                 appObj.UntappdId,
+                                                                 appObj.BreweryDbId,
+                                                                 appObj.BeerName,
+                                                                 appObj.ABV,
+                                                                 appObj.Description,
+                                                                 appObj.IBU,
+                                                                 appObj.Style,
+                                                                 appObj.ShortStyle,
+                                                                 appObj.LabelUrl
+                                                             }).Single();
 
                     retVal.Success = true;
                 }
@@ -85,19 +85,19 @@ namespace CMSC495Team3ServerApp.Repository
                 {
                     connection.Open();
                     connection.Execute(sql, new
-                    {
-                        BreweryId = appObj.Brewery_FK,
-                        appObj.UntappdId,
-                        appObj.BreweryDbId,
-                        appObj.BeerName,
-                        appObj.ABV,
-                        appObj.Description,
-                        appObj.IBU,
-                        appObj.Style,
-                        appObj.ShortStyle,
-                        appObj.LabelUrl,
-                        appObj.BeerId
-                    });
+                                            {
+                                                BreweryId = appObj.Brewery_FK,
+                                                appObj.UntappdId,
+                                                appObj.BreweryDbId,
+                                                appObj.BeerName,
+                                                appObj.ABV,
+                                                appObj.Description,
+                                                appObj.IBU,
+                                                appObj.Style,
+                                                appObj.ShortStyle,
+                                                appObj.LabelUrl,
+                                                appObj.BeerId
+                                            });
 
                     retVal.Data = appObj;
                     retVal.Success = true;
@@ -127,9 +127,9 @@ namespace CMSC495Team3ServerApp.Repository
                 {
                     connection.Open();
                     retVal.Data = connection.Query<Beer>(sql, new
-                    {
-                        BeerId = id
-                    }).FirstOrDefault();
+                                                              {
+                                                                  BeerId = id
+                                                              }).FirstOrDefault();
 
                     retVal.Success = true;
                 }
@@ -159,9 +159,9 @@ namespace CMSC495Team3ServerApp.Repository
                 {
                     connection.Open();
                     retVal.Data = connection.Query<Beer>(sql, new
-                    {
-                        BeerId = id
-                    }).FirstOrDefault();
+                                                              {
+                                                                  BeerId = id
+                                                              }).FirstOrDefault();
                 }
 
                 //TODO: revisit this... I've created a circular D.I. dependency 
@@ -194,9 +194,9 @@ namespace CMSC495Team3ServerApp.Repository
                 {
                     connection.Open();
                     retVal.Data = connection.Query<Beer>(sql, new
-                    {
-                        name
-                    }).ToList();
+                                                              {
+                                                                  name
+                                                              }).ToList();
 
                     retVal.Success = true;
                 }
@@ -224,9 +224,9 @@ namespace CMSC495Team3ServerApp.Repository
                 {
                     connection.Open();
                     retVal.Data = connection.Query<Beer>(sql, new
-                    {
-                        BreweryId = breweryId
-                    }).ToList();
+                                                              {
+                                                                  BreweryId = breweryId
+                                                              }).ToList();
 
                     retVal.Success = true;
                 }

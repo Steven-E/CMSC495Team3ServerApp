@@ -34,23 +34,20 @@ namespace CMSC495Team3ServerApp.Repository
 
             try
             {
-                //int userId;
-
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    retVal.Data = connection.Query<int>(sql, new
-                    {
-                        appObj.UserName,
-                        appObj.Password,
-                        appObj.UserEmail,
-                        appObj.FirstName,
-                        appObj.LastName,
-                        appObj.Location,
-                        appObj.UntappdId
-                    }).Single();
-
-                    //if appObject has nested values....
+                    retVal.Data = connection.Query<int>(sql,
+                        new
+                        {
+                            appObj.UserName,
+                            appObj.Password,
+                            appObj.UserEmail,
+                            appObj.FirstName,
+                            appObj.LastName,
+                            appObj.Location,
+                            appObj.UntappdId
+                        }).Single();
                 }
 
                 //TODO: do better than these loops. Add to sql above using dapper.
@@ -61,7 +58,6 @@ namespace CMSC495Team3ServerApp.Repository
                 foreach (var account in appObj.SocialAccounts) socialAccRepo.Insert(account, retVal.Data);
 
                 retVal.Success = true;
-
             }
             catch (Exception e)
             {
@@ -92,16 +88,17 @@ namespace CMSC495Team3ServerApp.Repository
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    connection.Execute(sql, new
-                    {
-                        appObj.UserName,
-                        appObj.UserEmail,
-                        appObj.FirstName,
-                        appObj.LastName,
-                        appObj.Location,
-                        appObj.UntappdId,
-                        appObj.UserId
-                    });
+                    connection.Execute(sql,
+                        new
+                        {
+                            appObj.UserName,
+                            appObj.UserEmail,
+                            appObj.FirstName,
+                            appObj.LastName,
+                            appObj.Location,
+                            appObj.UntappdId,
+                            appObj.UserId
+                        });
                 }
 
                 var userRankingCollection = new List<TransactionResult<UserBeerRanking>>();
@@ -136,7 +133,7 @@ namespace CMSC495Team3ServerApp.Repository
         public TransactionResult<UserInfo> FindById(int id)
         {
             const string sql = "SELECT * FROM UserInfo WHERE " +
-                       "UserId = @Id";
+                               "UserId = @Id";
 
             var retVal = new TransactionResult<UserInfo>();
 
@@ -145,11 +142,11 @@ namespace CMSC495Team3ServerApp.Repository
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    retVal.Data = connection.Query<UserInfo>(sql, new
-                    {
-                        id
-                    }).FirstOrDefault();
-
+                    retVal.Data = connection.Query<UserInfo>(sql,
+                        new
+                        {
+                            id
+                        }).FirstOrDefault();
                 }
 
                 if (retVal.Data != null)
@@ -188,10 +185,11 @@ namespace CMSC495Team3ServerApp.Repository
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    retVal.Data = connection.Query<UserInfo>(sql, new
-                    {
-                        id
-                    }).FirstOrDefault();
+                    retVal.Data = connection.Query<UserInfo>(sql,
+                        new
+                        {
+                            id
+                        }).FirstOrDefault();
                 }
 
                 if (retVal.Data != null)
@@ -230,10 +228,11 @@ namespace CMSC495Team3ServerApp.Repository
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    retVal.Data = connection.Query<UserInfo>(sql, new
-                    {
-                        firstName
-                    }).ToList();
+                    retVal.Data = connection.Query<UserInfo>(sql,
+                        new
+                        {
+                            firstName
+                        }).ToList();
                 }
 
                 foreach (var userInfo in retVal.Data)
@@ -274,10 +273,11 @@ namespace CMSC495Team3ServerApp.Repository
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    retVal.Data = connection.Query<UserInfo>(sql, new
-                    {
-                        lastName
-                    }).ToList();
+                    retVal.Data = connection.Query<UserInfo>(sql,
+                        new
+                        {
+                            lastName
+                        }).ToList();
                 }
 
                 foreach (var userInfo in retVal.Data)
@@ -318,10 +318,11 @@ namespace CMSC495Team3ServerApp.Repository
                 using (var connection = new MySqlConnection(Config.DatabaseConnectionString))
                 {
                     connection.Open();
-                    retVal.Data = connection.Query<UserInfo>(sql, new
-                    {
-                        location
-                    }).ToList();
+                    retVal.Data = connection.Query<UserInfo>(sql,
+                        new
+                        {
+                            location
+                        }).ToList();
                 }
 
                 foreach (var userInfo in retVal.Data)
@@ -352,8 +353,8 @@ namespace CMSC495Team3ServerApp.Repository
 
         public override TransactionResult<UserInfo> Update(UserInfo appObj, int referenceKey)
         {
-            return new TransactionResult<UserInfo>()
-                {Success = false, Details = "BAD REQUEST - Operation not implemented"};
+            return new TransactionResult<UserInfo>
+                   {Success = false, Details = "BAD REQUEST - Operation not implemented"};
         }
     }
 

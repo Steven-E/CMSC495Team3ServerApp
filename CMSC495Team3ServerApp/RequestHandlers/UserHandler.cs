@@ -14,7 +14,8 @@ namespace CMSC495Team3ServerApp.RequestHandlers
     {
         private readonly IUserInfoRepo userRepo;
 
-        public UserHandler(ILogger log, IConfigProvider config, IErrorResponseFactory errorResponseFactory,
+        public UserHandler(ILogger log, IConfigProvider config,
+            IErrorResponseFactory errorResponseFactory,
             IUserInfoRepo userRepo) : base(log,
             config, errorResponseFactory)
         {
@@ -22,31 +23,39 @@ namespace CMSC495Team3ServerApp.RequestHandlers
 
             SupportedActions.Add(HttpMethod.Get, GetAction);
             SupportedActions.Add(HttpMethod.Post, PostAction);
-            
-            SetupDocumentation();
-        }
 
-        private void SetupDocumentation()
-        {
-            EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "userId/{ID}", "URL", "UserInfo - JSON Payload",
-                typeof(UserInfo)));
-            EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "untappdId/{ID}", "URL",
-                "UserInfo - JSON Payload", typeof(UserInfo)));
-            EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "firstname/{name}", "URL",
-                "UserInfo - JSON Payload", typeof(UserInfo)));
-            EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "lastname/{name}", "URL",
-                "UserInfo - JSON Payload", typeof(UserInfo)));
-            EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "location/{location}", "URL",
-                "UserInfo - JSON Payload", typeof(UserInfo)));
-            EndpointDocumentation.Add(new RestDoc("POST", UrlSegment + "add/", "JSON Payload", "UserId - int",
-                typeof(UserInfo)));
-            EndpointDocumentation.Add(new RestDoc("POST", UrlSegment + "update/", "JSON Payload",
-                "JSON Payload - Updated UserInfo", typeof(UserInfo)));
+            SetupDocumentation();
         }
 
         public override string UrlSegment => "/user/";
 
-        private void GetAction(HttpListenerContext httpListenerContext, string[] route)
+        private void SetupDocumentation()
+        {
+            EndpointDocumentation.Add(new RestDoc("GET",
+                UrlSegment + "userId/{ID}", "URL", "UserInfo - JSON Payload",
+                typeof(UserInfo)));
+            EndpointDocumentation.Add(new RestDoc("GET",
+                UrlSegment + "untappdId/{ID}", "URL",
+                "UserInfo - JSON Payload", typeof(UserInfo)));
+            EndpointDocumentation.Add(new RestDoc("GET",
+                UrlSegment + "firstname/{name}", "URL",
+                "UserInfo - JSON Payload", typeof(UserInfo)));
+            EndpointDocumentation.Add(new RestDoc("GET",
+                UrlSegment + "lastname/{name}", "URL",
+                "UserInfo - JSON Payload", typeof(UserInfo)));
+            EndpointDocumentation.Add(new RestDoc("GET",
+                UrlSegment + "location/{location}", "URL",
+                "UserInfo - JSON Payload", typeof(UserInfo)));
+            EndpointDocumentation.Add(new RestDoc("POST", UrlSegment + "add/",
+                "JSON Payload", "UserId - int",
+                typeof(UserInfo)));
+            EndpointDocumentation.Add(new RestDoc("POST",
+                UrlSegment + "update/", "JSON Payload",
+                "JSON Payload - Updated UserInfo", typeof(UserInfo)));
+        }
+
+        private void GetAction(HttpListenerContext httpListenerContext,
+            string[] route)
         {
             try
             {
@@ -54,26 +63,34 @@ namespace CMSC495Team3ServerApp.RequestHandlers
                 {
                     case "userId":
                         var userId = int.Parse(route[1]);
-                        SendResponse(httpListenerContext, userRepo.FindById(userId));
+                        SendResponse(httpListenerContext,
+                            userRepo.FindById(userId));
                         break;
                     case "untappdId":
                         var uId = int.Parse(route[1]);
-                        SendResponse(httpListenerContext, userRepo.FindByUntappdId(uId));
+                        SendResponse(httpListenerContext,
+                            userRepo.FindByUntappdId(uId));
                         break;
                     case "firstname":
-                        SendResponse(httpListenerContext, userRepo.FindByFirstName(route[1]));
+                        SendResponse(httpListenerContext,
+                            userRepo.FindByFirstName(route[1]));
                         break;
                     case "lastname":
-                        SendResponse(httpListenerContext, userRepo.FindByLastName(route[1]));
+                        SendResponse(httpListenerContext,
+                            userRepo.FindByLastName(route[1]));
                         break;
                     case "location":
                         SendResponse(httpListenerContext,
-                            userRepo.FindByLocation(route[1].Replace(";", string.Empty).Replace("\"", string.Empty)
-                                .Replace("?", string.Empty)));
+                            userRepo.FindByLocation(route[1]
+                                                    .Replace(";", string.Empty)
+                                                    .Replace("\"", string.Empty)
+                                                    .Replace("?",
+                                                        string.Empty)));
                         break;
                     case "help":
                         SendOKResponseAndPayload(httpListenerContext,
-                            JsonConvert.SerializeObject(EndpointDocumentation, Formatting.Indented));
+                            JsonConvert.SerializeObject(EndpointDocumentation,
+                                Formatting.Indented));
                         break;
                     default:
                         ErrorResponse
@@ -85,15 +102,21 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             }
             catch (Exception e)
             {
-                if (e is ArgumentNullException || e is ArgumentException || e is FormatException ||
+                if (e is ArgumentNullException || e is ArgumentException ||
+                    e is FormatException ||
                     e is OverflowException)
-                    ErrorResponse.Get(HttpStatusCode.BadRequest).Handle(httpListenerContext, "Badly formed Id");
+                    ErrorResponse
+                        .Get(HttpStatusCode.BadRequest)
+                        .Handle(httpListenerContext, "Badly formed Id");
                 else
-                    ErrorResponse.Get(HttpStatusCode.InternalServerError).Handle(httpListenerContext, $"Route - '{string.Join("/", route)}'");
+                    ErrorResponse.Get(HttpStatusCode.InternalServerError)
+                                 .Handle(httpListenerContext,
+                                     $"Route - '{string.Join("/", route)}'");
             }
         }
 
-        private void PostAction(HttpListenerContext httpListenerContext, string[] route)
+        private void PostAction(HttpListenerContext httpListenerContext,
+            string[] route)
         {
             string json;
             UserInfo user;
@@ -108,7 +131,8 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             {
                 ErrorResponse
                     .Get(HttpStatusCode.BadRequest)
-                    .Handle(httpListenerContext, $"Malformed or bad data provided in Json Body. Details - {e.Message}");
+                    .Handle(httpListenerContext,
+                        $"Malformed or bad data provided in Json Body. Details - {e.Message}");
                 return;
             }
 
@@ -117,10 +141,12 @@ namespace CMSC495Team3ServerApp.RequestHandlers
                 switch (route[0])
                 {
                     case "add":
-                        SendResponse(httpListenerContext, userRepo.Insert(user));
+                        SendResponse(httpListenerContext,
+                            userRepo.Insert(user));
                         break;
                     case "update":
-                        SendResponse(httpListenerContext, userRepo.Update(user));
+                        SendResponse(httpListenerContext,
+                            userRepo.Update(user));
                         break;
                     default:
                         ErrorResponse
@@ -132,7 +158,8 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             }
             catch (Exception)
             {
-                ErrorResponse.Get(HttpStatusCode.InternalServerError).Handle(httpListenerContext,
+                ErrorResponse.Get(HttpStatusCode.InternalServerError).Handle(
+                    httpListenerContext,
                     $"Route - '{string.Join("/", route)}'," +
                     $" Content - '{json}'");
             }

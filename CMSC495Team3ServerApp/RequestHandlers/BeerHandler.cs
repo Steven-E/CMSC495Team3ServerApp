@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -20,11 +19,14 @@ namespace CMSC495Team3ServerApp.RequestHandlers
     public class BeerHandler : SupportedRequestHandlerBase
     {
         private readonly IBeerRepo beerRepo;
-        private readonly IUntappdApiClient client;
         private readonly IBreweryRepo breweryRepo;
+        private readonly IUntappdApiClient client;
 
-        public BeerHandler(ILogger log, IConfigProvider config, IErrorResponseFactory errorResponseFactory,
-            IBeerRepo beerRepo, IBreweryRepo breweryRepo, IUntappdApiClient client) : base(log, config, errorResponseFactory)
+        public BeerHandler(ILogger log, IConfigProvider config,
+            IErrorResponseFactory errorResponseFactory,
+            IBeerRepo beerRepo, IBreweryRepo breweryRepo, IUntappdApiClient client) : base(log,
+            config,
+            errorResponseFactory)
         {
             this.beerRepo = beerRepo;
             this.breweryRepo = breweryRepo;
@@ -41,14 +43,20 @@ namespace CMSC495Team3ServerApp.RequestHandlers
 
         private void SetupDocumentation()
         {
-            EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "untappdId/{ID}", "URL", "JSON payload",
+            //GETs
+            EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "untappdId/{ID}", "URL",
+                "JSON payload",
                 typeof(Beer)));
-            EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "beerId/{ID}", "URL", "JSON payload",
+            EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "beerId/{ID}", "URL",
+                "JSON payload",
                 typeof(Beer)));
-            EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "breweryId/{ID}", "URL", "JSON payload",
+            EndpointDocumentation.Add(new RestDoc("GET", UrlSegment + "breweryId/{ID}", "URL",
+                "JSON payload",
                 typeof(ICollection<Beer>)));
 
-            EndpointDocumentation.Add(new RestDoc("POST", UrlSegment + "add/", "JSON payload", "BeerId - int",
+            //POSTs
+            EndpointDocumentation.Add(new RestDoc("POST", UrlSegment + "add/", "JSON payload",
+                "BeerId - int",
                 typeof(Beer)));
             EndpointDocumentation.Add(new RestDoc("POST", UrlSegment + "update/", "JSON payload",
                 "Updated Beer - JSON payload", typeof(Beer)));
@@ -69,7 +77,8 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             {
                 ErrorResponse
                     .Get(HttpStatusCode.BadRequest)
-                    .Handle(httpListenerContext, $"Malformed or bad data provided in Json Body. Details - {e.Message}");
+                    .Handle(httpListenerContext,
+                        $"Malformed or bad data provided in Json Body. Details - {e.Message}");
                 return;
             }
 
@@ -86,7 +95,8 @@ namespace CMSC495Team3ServerApp.RequestHandlers
                     default:
                         ErrorResponse
                             .Get(HttpStatusCode.BadRequest)
-                            .Handle(httpListenerContext, $"Bad Request - No '/beer/{route[0]}/...' exists");
+                            .Handle(httpListenerContext,
+                                $"Bad Request - No '/beer/{route[0]}/...' exists");
                         break;
                 }
             }
@@ -127,38 +137,47 @@ namespace CMSC495Team3ServerApp.RequestHandlers
                         if (!dbResults.Success || dbResults.Data.Count == 0)
                         {
                             //try find in Untappd
-                            var requestWrapper = new RequestWrapper()
-                            {
-                                HttpMethod = HttpMethod.Get,
-                                RelativePath = "search/beer",
-                                QueryParameters = new List<KeyValuePair<string, string>>()
+                            var requestWrapper =
+                                new RequestWrapper
                                 {
-                                    new KeyValuePair<string, string>("q", name),
-                                    new KeyValuePair<string, string>("sort", "name")
-                                }
-                            };
+                                    HttpMethod = HttpMethod.Get,
+                                    RelativePath = "search/beer",
+                                    QueryParameters =
+                                        new List<KeyValuePair<string, string>>
+                                        {
+                                            new KeyValuePair<string, string>("q",
+                                                name),
+                                            new KeyValuePair<string, string>(
+                                                "sort",
+                                                "name")
+                                        }
+                                };
 
                             var clientResults = client.Get(requestWrapper);
 
                             if (clientResults.Success && clientResults.Data.IsSuccess)
                             {
-                                var uResponse = JsonConvert.DeserializeObject<UntappdResponse>(clientResults.Data.Content.ToString()) 
-                                    as UntappdResponse;
+                                var uResponse =
+                                    JsonConvert.DeserializeObject<UntappdResponse>(
+                                            clientResults.Data.Content.ToString())
+                                        as UntappdResponse;
 
 
-
-                                if (uResponse.Meta.Code == (int) HttpStatusCode.OK )
+                                if (uResponse.Meta.Code == (int) HttpStatusCode.OK)
                                 {
                                     var contentResponse =
-                                        JsonConvert.DeserializeObject<BeerSearchResponse>(uResponse.Response.ToString()) as
+                                        JsonConvert.DeserializeObject<BeerSearchResponse>(
+                                                uResponse.Response.ToString())
+                                            as
                                             BeerSearchResponse;
 
                                     if (contentResponse.Found > 0)
                                     {
-
                                         var insertedResults =
-                                            new TransactionResult<ICollection<TransactionResult<Brewery>>>();
-                                        insertedResults.Data = new List<TransactionResult<Brewery>>();
+                                            new TransactionResult<
+                                                ICollection<TransactionResult<Brewery>>>();
+                                        insertedResults.Data =
+                                            new List<TransactionResult<Brewery>>();
 
                                         foreach (var item in contentResponse.Beers.Items)
                                         {
@@ -166,34 +185,44 @@ namespace CMSC495Team3ServerApp.RequestHandlers
                                             var appBeer = UntappdToAppAdapter.Get(item.Beer);
                                             appBrewery.Beers.Add(appBeer);
 
-                                            insertedResults.Data.Add(breweryRepo.AddOrUpdate(appBrewery));
+                                            insertedResults.Data.Add(breweryRepo.AddOrUpdate(
+                                                appBrewery));
                                         }
 
-                                        insertedResults.Success = insertedResults.Data.All(x => x.Success);
+                                        insertedResults.Success =
+                                            insertedResults.Data.All(x => x.Success);
 
                                         SendResponse(httpListenerContext, insertedResults);
                                         break;
                                     }
                                 }
 
-                                SendResponse(httpListenerContext, new TransactionResult<UntappdResponse>(){Data = uResponse, Success = uResponse.Meta.Code == (int)HttpStatusCode.OK});
+                                SendResponse(httpListenerContext,
+                                    new TransactionResult<UntappdResponse>
+                                    {
+                                        Data = uResponse,
+                                        Success = uResponse.Meta.Code == (int) HttpStatusCode.OK
+                                    });
                                 break;
                             }
+
                             SendResponse(httpListenerContext, clientResults);
                             break;
                         }
-                        
+
                         SendResponse(httpListenerContext, dbResults);
 
                         break;
                     case "help":
                         SendOKResponseAndPayload(httpListenerContext,
-                            JsonConvert.SerializeObject(EndpointDocumentation, Formatting.Indented));
+                            JsonConvert.SerializeObject(EndpointDocumentation,
+                                Formatting.Indented));
                         break;
                     default:
                         ErrorResponse
                             .Get(HttpStatusCode.BadRequest)
-                            .Handle(httpListenerContext, $"Bad Request - No '/beer/{route[0]}/...' exists");
+                            .Handle(httpListenerContext,
+                                $"Bad Request - No '/beer/{route[0]}/...' exists");
                         break;
                 }
             }
@@ -201,9 +230,12 @@ namespace CMSC495Team3ServerApp.RequestHandlers
             {
                 if (e is ArgumentNullException || e is ArgumentException || e is FormatException ||
                     e is OverflowException)
-                    ErrorResponse.Get(HttpStatusCode.BadRequest).Handle(httpListenerContext, "Badly formed Id");
+                    ErrorResponse.Get(HttpStatusCode.BadRequest)
+                                 .Handle(httpListenerContext, "Badly formed Id");
                 else
-                    ErrorResponse.Get(HttpStatusCode.InternalServerError).Handle(httpListenerContext, $"Route - '{string.Join("/", route)}'");
+                    ErrorResponse.Get(HttpStatusCode.InternalServerError)
+                                 .Handle(httpListenerContext,
+                                     $"Route - '{string.Join("/", route)}'");
             }
         }
     }
